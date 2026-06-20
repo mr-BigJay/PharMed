@@ -30,6 +30,7 @@ class InventoryPage(QWidget):
         self.current_mode = "items"
         self.current_item_section = "register"
         self.current_stock_in_section = "register"
+        self.current_stock_out_section = "register"
 
         self.setup_ui()
 
@@ -117,6 +118,36 @@ class InventoryPage(QWidget):
         self.stock_in_section_layout.addStretch()
         layout.addLayout(
             self.stock_in_section_layout
+        )
+
+        self.stock_out_section_layout = QHBoxLayout()
+        self.register_stock_out_btn = QPushButton(
+            "ثبت خروج از انبار"
+        )
+        self.register_stock_out_btn.setObjectName(
+            "sectionButton"
+        )
+        self.register_stock_out_btn.clicked.connect(
+            lambda: self.set_stock_out_section("register")
+        )
+        self.list_stock_out_btn = QPushButton(
+            "لیست خروج‌های ثبت‌شده"
+        )
+        self.list_stock_out_btn.setObjectName(
+            "sectionButton"
+        )
+        self.list_stock_out_btn.clicked.connect(
+            lambda: self.set_stock_out_section("list")
+        )
+        self.stock_out_section_layout.addWidget(
+            self.register_stock_out_btn
+        )
+        self.stock_out_section_layout.addWidget(
+            self.list_stock_out_btn
+        )
+        self.stock_out_section_layout.addStretch()
+        layout.addLayout(
+            self.stock_out_section_layout
         )
 
         tools_layout = QHBoxLayout()
@@ -279,6 +310,7 @@ class InventoryPage(QWidget):
                 )
 
         if mode == "stock_out":
+            self.current_stock_out_section = "register"
             index = self.transaction_type_combo.findData(
                 inventory_service.TRANSACTION_OUT
             )
@@ -328,9 +360,17 @@ class InventoryPage(QWidget):
         self.current_stock_in_section = section
         self.update_mode_visibility()
 
+    def set_stock_out_section(
+        self,
+        section
+    ):
+        self.current_stock_out_section = section
+        self.update_mode_visibility()
+
     def update_mode_visibility(self):
         is_items_mode = self.current_mode == "items"
         is_stock_in_mode = self.current_mode == "stock_in"
+        is_stock_out_mode = self.current_mode == "stock_out"
 
         self.register_items_btn.setVisible(
             is_items_mode
@@ -343,6 +383,12 @@ class InventoryPage(QWidget):
         )
         self.list_stock_in_btn.setVisible(
             is_stock_in_mode
+        )
+        self.register_stock_out_btn.setVisible(
+            is_stock_out_mode
+        )
+        self.list_stock_out_btn.setVisible(
+            is_stock_out_mode
         )
         self.item_form_group.setVisible(
             is_items_mode and self.current_item_section == "register"
@@ -359,7 +405,10 @@ class InventoryPage(QWidget):
         )
         self.transaction_group.setVisible(
             (
-                self.current_mode == "stock_out"
+                (
+                    is_stock_out_mode
+                    and self.current_stock_out_section == "register"
+                )
                 or (
                     is_stock_in_mode
                     and self.current_stock_in_section == "register"
@@ -368,7 +417,10 @@ class InventoryPage(QWidget):
         )
         self.transactions_title.setVisible(
             (
-                self.current_mode == "stock_out"
+                (
+                    is_stock_out_mode
+                    and self.current_stock_out_section == "list"
+                )
                 or (
                     is_stock_in_mode
                     and self.current_stock_in_section == "list"
@@ -377,7 +429,10 @@ class InventoryPage(QWidget):
         )
         self.transactions_table.setVisible(
             (
-                self.current_mode == "stock_out"
+                (
+                    is_stock_out_mode
+                    and self.current_stock_out_section == "list"
+                )
                 or (
                     is_stock_in_mode
                     and self.current_stock_in_section == "list"
@@ -401,11 +456,21 @@ class InventoryPage(QWidget):
             "active",
             self.current_stock_in_section == "list"
         )
+        self.register_stock_out_btn.setProperty(
+            "active",
+            self.current_stock_out_section == "register"
+        )
+        self.list_stock_out_btn.setProperty(
+            "active",
+            self.current_stock_out_section == "list"
+        )
         for button in (
             self.register_items_btn,
             self.list_items_btn,
             self.register_stock_in_btn,
-            self.list_stock_in_btn
+            self.list_stock_in_btn,
+            self.register_stock_out_btn,
+            self.list_stock_out_btn
         ):
             button.style().unpolish(
                 button

@@ -15,6 +15,8 @@ built with PySide6, SQLAlchemy, and SQLite.
 - Per-unit opening stock and stock in/out transactions
 - Stock-in menu has separate sections for registering a new stock entry and
   listing previously registered stock entries
+- Stock-out menu has separate sections for registering a new stock exit and
+  listing previously registered stock exits
 - Stock validation that blocks outgoing transactions above available quantity
 - Medical equipment inventory view
 - Stock request registration and manager approval/rejection workflow
