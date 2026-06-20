@@ -14,6 +14,8 @@ built with PySide6, SQLAlchemy, and SQLite.
 - Stock request registration and manager approval/rejection workflow
 - Basic inventory reports and low-stock report
 - Unit manager user list with activation/deactivation controls
+- Automatic first-run bootstrap for categories, centers, health houses,
+  drugs, and medical equipment from the bundled `data/*.xlsx` files
 
 ## Setup
 
@@ -23,14 +25,14 @@ Install dependencies:
 python3 -m pip install -r requirements.txt
 ```
 
-Bootstrap reference data in this order:
+Reference data is imported automatically on app startup from:
 
-```bash
-python3 services/seed_categories.py
-python3 services/import_centers.py
-python3 services/import_health_houses.py
-python3 services/import_items.py
-```
+- `data/centers.xlsx`
+- `data/health_houses.xlsx`
+- `data/inventory_items.xlsx`
+
+The bootstrap is idempotent, so restarting the app does not create duplicate
+centers, health houses, drugs, or medical equipment.
 
 Create the first super admin without storing the password in source code:
 
@@ -42,4 +44,10 @@ Run the app:
 
 ```bash
 python3 main.py
+```
+
+When building an installer with PyInstaller, bundle both resource folders:
+
+```bash
+pyinstaller --add-data "assets:assets" --add-data "data:data" main.py
 ```
