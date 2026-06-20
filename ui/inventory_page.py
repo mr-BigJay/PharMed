@@ -43,17 +43,17 @@ class InventoryPage(QWidget):
             18
         )
 
-        title = QLabel(
+        self.title_label = QLabel(
             "مدیریت موجودی دارو و تجهیزات"
         )
-        title.setObjectName(
+        self.title_label.setObjectName(
             "pageTitle"
         )
-        title.setAlignment(
-            Qt.AlignCenter
+        self.title_label.setAlignment(
+            Qt.AlignRight
         )
         layout.addWidget(
-            title
+            self.title_label
         )
 
         tools_layout = QHBoxLayout()
@@ -72,22 +72,13 @@ class InventoryPage(QWidget):
             self.refresh_data
         )
 
-        back_btn = QPushButton(
-            "بازگشت به داشبورد"
-        )
-        back_btn.clicked.connect(
-            self.main_window.show_dashboard
-        )
-
         tools_layout.addWidget(
             self.search_input
         )
         tools_layout.addWidget(
             refresh_btn
         )
-        tools_layout.addWidget(
-            back_btn
-        )
+        tools_layout.addStretch()
         layout.addLayout(
             tools_layout
         )
@@ -188,6 +179,44 @@ class InventoryPage(QWidget):
 
         self.load_categories()
         self.refresh_data()
+        self.set_mode(
+            "items"
+        )
+
+    def set_mode(
+        self,
+        mode
+    ):
+        titles = {
+            "items": "اقلام و اطلاعات پایه کالا",
+            "stock": "موجودی انبار",
+            "stock_in": "ورود انبار",
+            "stock_out": "خروج انبار",
+        }
+        self.title_label.setText(
+            titles.get(
+                mode,
+                "مدیریت موجودی دارو و تجهیزات"
+            )
+        )
+
+        if mode == "stock_in":
+            index = self.transaction_type_combo.findData(
+                inventory_service.TRANSACTION_IN
+            )
+            if index >= 0:
+                self.transaction_type_combo.setCurrentIndex(
+                    index
+                )
+
+        if mode == "stock_out":
+            index = self.transaction_type_combo.findData(
+                inventory_service.TRANSACTION_OUT
+            )
+            if index >= 0:
+                self.transaction_type_combo.setCurrentIndex(
+                    index
+                )
 
     def build_item_group(self):
         group = QGroupBox(

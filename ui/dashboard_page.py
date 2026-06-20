@@ -398,11 +398,11 @@ class DashboardPage(QWidget):
 
         grid = QGridLayout()
         actions = [
-            ("⬇ ورود کالا", self.main_window.show_inventory, "quickGreen"),
-            ("⬆ خروج کالا", self.main_window.show_inventory, "quickRed"),
+            ("⬇ ورود کالا", self.main_window.show_stock_in, "quickGreen"),
+            ("⬆ خروج کالا", self.main_window.show_stock_out, "quickRed"),
             ("🔁 ثبت درخواست", self.main_window.show_requests, "quickBlue"),
             ("📊 گزارشات", self.main_window.show_reports, "quickOrange"),
-            ("⚙ مدیریت اقلام", self.main_window.show_inventory, "quickPurple"),
+            ("⚙ مدیریت اقلام", self.main_window.show_items, "quickPurple"),
             ("👥 کاربران", self.main_window.show_users, "quickGray"),
         ]
 

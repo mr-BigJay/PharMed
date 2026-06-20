@@ -58,7 +58,7 @@ class UsersPage(QWidget):
             "pageTitle"
         )
         title.setAlignment(
-            Qt.AlignCenter
+            Qt.AlignRight
         )
         layout.addWidget(
             title
@@ -103,13 +103,6 @@ class UsersPage(QWidget):
             lambda: self.change_selected_user_status(False)
         )
 
-        back_btn = QPushButton(
-            "بازگشت به داشبورد"
-        )
-        back_btn.clicked.connect(
-            self.main_window.show_dashboard
-        )
-
         actions_layout.addWidget(
             refresh_btn
         )
@@ -119,9 +112,7 @@ class UsersPage(QWidget):
         actions_layout.addWidget(
             deactivate_btn
         )
-        actions_layout.addWidget(
-            back_btn
-        )
+        actions_layout.addStretch()
         layout.addLayout(
             actions_layout
         )

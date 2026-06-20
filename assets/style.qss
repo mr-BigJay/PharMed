@@ -135,6 +135,11 @@ QScrollArea,
     background: #0A4E9B;
 }
 
+#navButton[active="true"] {
+    background: #147BFF;
+    color: #FFFFFF;
+}
+
 #sidebarFooter {
     color: #A9C8F7;
     font-size: 11px;
@@ -373,5 +378,13 @@ QScrollArea,
 }
 
 #logoutButton:hover {
+    background: #DC2626;
+}
+
+#dangerButton {
+    background: #EF4444;
+}
+
+#dangerButton:hover {
     background: #DC2626;
 }

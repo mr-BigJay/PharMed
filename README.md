@@ -20,8 +20,7 @@ built with PySide6, SQLAlchemy, and SQLite.
 - First registered user for each unit becomes that unit manager
 - Health houses support 3 users total; treatment centers support 5 users total
 
-PharMed is designed for a public health network supply flow, so it does not
-model purchase orders, prices, or external suppliers.
+PharMed is designed around internal stock flow for a county health network.
 
 ## Setup
 

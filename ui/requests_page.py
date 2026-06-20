@@ -53,7 +53,7 @@ class RequestsPage(QWidget):
             "pageTitle"
         )
         title.setAlignment(
-            Qt.AlignCenter
+            Qt.AlignRight
         )
         layout.addWidget(
             title
@@ -122,13 +122,6 @@ class RequestsPage(QWidget):
         reject_btn.clicked.connect(
             lambda: self.change_request_status(STATUS_REJECTED)
         )
-        back_btn = QPushButton(
-            "بازگشت به داشبورد"
-        )
-        back_btn.clicked.connect(
-            self.main_window.show_dashboard
-        )
-
         actions_layout.addWidget(
             refresh_btn
         )
@@ -138,9 +131,7 @@ class RequestsPage(QWidget):
         actions_layout.addWidget(
             reject_btn
         )
-        actions_layout.addWidget(
-            back_btn
-        )
+        actions_layout.addStretch()
         layout.addLayout(
             actions_layout
         )

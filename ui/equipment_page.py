@@ -41,7 +41,7 @@ class EquipmentPage(QWidget):
             "pageTitle"
         )
         title.setAlignment(
-            Qt.AlignCenter
+            Qt.AlignRight
         )
         layout.addWidget(
             title
@@ -63,22 +63,13 @@ class EquipmentPage(QWidget):
             self.refresh_data
         )
 
-        back_btn = QPushButton(
-            "بازگشت به داشبورد"
-        )
-        back_btn.clicked.connect(
-            self.main_window.show_dashboard
-        )
-
         tools_layout.addWidget(
             self.search_input
         )
         tools_layout.addWidget(
             refresh_btn
         )
-        tools_layout.addWidget(
-            back_btn
-        )
+        tools_layout.addStretch()
         layout.addLayout(
             tools_layout
         )

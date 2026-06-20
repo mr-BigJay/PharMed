@@ -20,6 +20,7 @@ from ui.login_window import LoginWindow
 from ui.register_window import RegisterWindow
 from ui.reports_page import ReportsPage
 from ui.requests_page import RequestsPage
+from ui.settings_page import SettingsPage
 from ui.users_page import UsersPage
 
 
@@ -74,6 +75,9 @@ class MainWindow(QMainWindow):
         self.reports_page = ReportsPage(
             self
         )
+        self.settings_page = SettingsPage(
+            self
+        )
 
         for page in (
             self.dashboard_page,
@@ -82,11 +86,13 @@ class MainWindow(QMainWindow):
             self.requests_page,
             self.users_page,
             self.reports_page,
+            self.settings_page,
         ):
             self.content_stack.addWidget(
                 page
             )
 
+        self.nav_buttons = {}
         self.user_name_label = QLabel()
         self.user_status_label = QLabel()
         self.app_shell = self.build_app_shell()
@@ -311,26 +317,33 @@ class MainWindow(QMainWindow):
         )
 
         nav_items = [
-            ("🏠  داشبورد", self.show_dashboard),
-            ("📦  مدیریت اقلام", self.show_inventory),
-            ("⬇  ورود کالا", self.show_inventory),
-            ("⬆  خروج کالا", self.show_inventory),
-            ("🔁  درخواست / انتقال", self.show_requests),
-            ("🏥  تجهیزات پزشکی", self.show_equipment),
-            ("📊  گزارشات", self.show_reports),
-            ("👥  کاربران", self.show_users),
+            ("dashboard", "🏠  داشبورد", self.show_dashboard),
+            ("items", "📦  اقلام", self.show_items),
+            ("stock_in", "⬇  ورود انبار", self.show_stock_in),
+            ("stock_out", "⬆  خروج انبار", self.show_stock_out),
+            ("requests", "🔁  درخواست / انتقال", self.show_requests),
+            ("stock", "🏬  موجودی انبار", self.show_stock_balance),
+            ("equipment", "🏥  تجهیزات پزشکی", self.show_equipment),
+            ("reports", "📊  گزارشات", self.show_reports),
+            ("users", "👥  کاربران", self.show_users),
+            ("settings", "⚙  تنظیمات", self.show_settings),
         ]
 
-        for title, callback in nav_items:
+        for key, title, callback in nav_items:
             button = QPushButton(
                 title
             )
             button.setObjectName(
                 "navButton"
             )
+            button.setProperty(
+                "navKey",
+                key
+            )
             button.clicked.connect(
                 callback
             )
+            self.nav_buttons[key] = button
             layout.addWidget(
                 button
             )
@@ -385,9 +398,13 @@ class MainWindow(QMainWindow):
 
     def show_app_page(
         self,
-        page
+        page,
+        nav_key=None
     ):
         self.update_topbar()
+        self.set_active_nav(
+            nav_key
+        )
         self.root_stack.setCurrentWidget(
             self.app_shell
         )
@@ -408,10 +425,66 @@ class MainWindow(QMainWindow):
             self.dashboard_page
         )
         self.show_app_page(
-            self.dashboard_page
+            self.dashboard_page,
+            "dashboard"
         )
 
-    def show_inventory(self):
+    def show_items(self):
+        if hasattr(
+            self.inventory_page,
+            "set_mode"
+        ):
+            self.inventory_page.set_mode(
+                "items"
+            )
+
+        self.show_inventory(
+            "items"
+        )
+
+    def show_stock_in(self):
+        if hasattr(
+            self.inventory_page,
+            "set_mode"
+        ):
+            self.inventory_page.set_mode(
+                "stock_in"
+            )
+
+        self.show_inventory(
+            "stock_in"
+        )
+
+    def show_stock_out(self):
+        if hasattr(
+            self.inventory_page,
+            "set_mode"
+        ):
+            self.inventory_page.set_mode(
+                "stock_out"
+            )
+
+        self.show_inventory(
+            "stock_out"
+        )
+
+    def show_stock_balance(self):
+        if hasattr(
+            self.inventory_page,
+            "set_mode"
+        ):
+            self.inventory_page.set_mode(
+                "stock"
+            )
+
+        self.show_inventory(
+            "stock"
+        )
+
+    def show_inventory(
+        self,
+        nav_key="items"
+    ):
         if hasattr(
             self.inventory_page,
             "refresh_data"
@@ -419,7 +492,8 @@ class MainWindow(QMainWindow):
             self.inventory_page.refresh_data()
 
         self.show_app_page(
-            self.inventory_page
+            self.inventory_page,
+            nav_key
         )
 
     def show_equipment(self):
@@ -430,7 +504,8 @@ class MainWindow(QMainWindow):
             self.equipment_page.refresh_data()
 
         self.show_app_page(
-            self.equipment_page
+            self.equipment_page,
+            "equipment"
         )
 
     def show_requests(self):
@@ -441,7 +516,8 @@ class MainWindow(QMainWindow):
             self.requests_page.refresh_data()
 
         self.show_app_page(
-            self.requests_page
+            self.requests_page,
+            "requests"
         )
 
     def show_users(self):
@@ -452,7 +528,8 @@ class MainWindow(QMainWindow):
             self.users_page.refresh_data()
 
         self.show_app_page(
-            self.users_page
+            self.users_page,
+            "users"
         )
 
     def show_reports(self):
@@ -463,5 +540,28 @@ class MainWindow(QMainWindow):
             self.reports_page.refresh_data()
 
         self.show_app_page(
-            self.reports_page
+            self.reports_page,
+            "reports"
         )
+
+    def show_settings(self):
+        self.show_app_page(
+            self.settings_page,
+            "settings"
+        )
+
+    def set_active_nav(
+        self,
+        active_key
+    ):
+        for key, button in self.nav_buttons.items():
+            button.setProperty(
+                "active",
+                key == active_key
+            )
+            button.style().unpolish(
+                button
+            )
+            button.style().polish(
+                button
+            )
