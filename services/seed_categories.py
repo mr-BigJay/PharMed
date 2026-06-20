@@ -1,15 +1,27 @@
+from db import init_db
 from services.db_session import SessionLocal
 
 from models.category import Category
 
-db = SessionLocal()
 
-if not db.query(Category).filter_by(name="دارو").first():
-    db.add(Category(name="دارو"))
+def main():
+    init_db()
+    db = SessionLocal()
 
-if not db.query(Category).filter_by(name="تجهیزات پزشکی").first():
-    db.add(Category(name="تجهیزات پزشکی"))
+    try:
+        if not db.query(Category).filter_by(name="دارو").first():
+            db.add(Category(name="دارو"))
 
-db.commit()
+        if not db.query(Category).filter_by(name="تجهیزات پزشکی").first():
+            db.add(Category(name="تجهیزات پزشکی"))
 
-print("Categories Seeded")
+        db.commit()
+
+        print("Categories Seeded")
+
+    finally:
+        db.close()
+
+
+if __name__ == "__main__":
+    main()

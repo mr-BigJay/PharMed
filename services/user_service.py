@@ -5,6 +5,9 @@ from services.db_session import SessionLocal
 from models.user import User
 
 
+MAX_USERS_PER_UNIT = 3
+
+
 def create_user(
     first_name,
     last_name,
@@ -33,13 +36,6 @@ def create_user(
                 "این شماره موبایل قبلاً ثبت شده است"
             )
 
-        password_hash = bcrypt.hashpw(
-            password.encode("utf-8"),
-            bcrypt.gensalt()
-        ).decode("utf-8")
-
-        is_manager = False
-
         # اگر کاربر مربوط به خانه بهداشت باشد
         if health_house_id is not None:
 
@@ -51,9 +47,6 @@ def create_user(
                 )
                 .count()
             )
-
-            if users_count == 0:
-                is_manager = True
 
         # اگر کاربر مربوط به مرکز درمانی باشد
         else:
@@ -68,8 +61,19 @@ def create_user(
                 .count()
             )
 
-            if users_count == 0:
-                is_manager = True
+        if users_count >= MAX_USERS_PER_UNIT:
+            return (
+                False,
+                f"ظرفیت ثبت کاربر برای این واحد تکمیل شده است "
+                f"({MAX_USERS_PER_UNIT} نفر)"
+            )
+
+        is_manager = users_count == 0
+
+        password_hash = bcrypt.hashpw(
+            password.encode("utf-8"),
+            bcrypt.gensalt()
+        ).decode("utf-8")
 
         user = User(
             first_name=first_name,

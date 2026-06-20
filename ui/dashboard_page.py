@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from services.db_session import SessionLocal
+from services.user_service import MAX_USERS_PER_UNIT
 
 from models.center import Center
 from models.health_house import HealthHouse
@@ -86,17 +87,20 @@ class DashboardPage(QWidget):
                 f"{user.last_name}"
             )
 
-            if user.role == "پرستار":
+            role_titles = {
+                "پرستار": "پرستار گرامی",
+                "بهورز": "بهورز گرامی",
+                "super_admin": "مدیر سامانه",
+            }
 
-                welcome_text = (
-                    f"پرستار گرامی {full_name}، خوش آمدید"
-                )
+            role_title = role_titles.get(
+                user.role,
+                "کاربر گرامی"
+            )
 
-            else:
-
-                welcome_text = (
-                    f"بهورز گرامی {full_name}، خوش آمدید"
-                )
+            welcome_text = (
+                f"{role_title} {full_name}، خوش آمدید"
+            )
 
         else:
 
@@ -200,7 +204,7 @@ class DashboardPage(QWidget):
                 admin_label
             )
 
-            max_users = 3
+            max_users = MAX_USERS_PER_UNIT
             registered_count = 0
 
             if user.health_house_id:
@@ -272,26 +276,28 @@ class DashboardPage(QWidget):
         )
 
         inventory_card = ActionCard(
-            "📦 مدیریت موجودی دارو"
-        )
-        inventory_card.callback = (
-        self.main_window.show_inventory
+            "📦 مدیریت موجودی دارو",
+            self.main_window.show_inventory
         )
 
         equipment_card = ActionCard(
-            "🏥 تجهیزات پزشکی"
+            "🏥 تجهیزات پزشکی",
+            self.main_window.show_equipment
         )
 
         requests_card = ActionCard(
-            "📋 درخواست‌ها"
+            "📋 درخواست‌ها",
+            self.main_window.show_requests
         )
 
         reports_card = ActionCard(
-            "📊 گزارشات"
+            "📊 گزارشات",
+            self.main_window.show_reports
         )
 
         users_card = ActionCard(
-            "👥 مدیریت کاربران"
+            "👥 مدیریت کاربران",
+            self.main_window.show_users
         )
 
         cards_grid.addWidget(

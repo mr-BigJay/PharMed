@@ -1,33 +1,11 @@
-from PySide6.QtWidgets import (
-    QWidget,
-    QLabel,
-    QVBoxLayout
-)
-
-from PySide6.QtCore import Qt
+from ui.widgets.placeholder_page import PlaceholderPage
 
 
-class InventoryPage(QWidget):
+class InventoryPage(PlaceholderPage):
 
     def __init__(self, main_window):
-        super().__init__()
-
-        self.main_window = main_window
-
-        layout = QVBoxLayout()
-
-        title = QLabel(
-            "مدیریت موجودی دارو"
-        )
-
-        title.setAlignment(
-            Qt.AlignCenter
-        )
-
-        layout.addWidget(
-            title
-        )
-
-        self.setLayout(
-            layout
+        super().__init__(
+            main_window,
+            "مدیریت موجودی دارو",
+            "این بخش برای ثبت موجودی اولیه، ورود و خروج داروها و کنترل حداقل موجودی در نسخه‌های بعدی تکمیل می‌شود."
         )

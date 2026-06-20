@@ -30,20 +30,33 @@ def login_user(
     password: str
 ):
     db = SessionLocal()
-    user = (
-        db.query(User)
-        .filter_by(
-            mobile=mobile,
-            is_active=True
+
+    try:
+        user = (
+            db.query(User)
+            .filter_by(
+                mobile=mobile,
+                is_active=True
+            )
+            .first()
         )
-        .first()
-    )
-    if not user:
-        return None
-    valid = bcrypt.checkpw(
-        password.encode("utf-8"),
-        user.password_hash.encode("utf-8")
-    )
-    if not valid:
-        return None
-    return user
+
+        if not user:
+            return None
+
+        valid = bcrypt.checkpw(
+            password.encode("utf-8"),
+            user.password_hash.encode("utf-8")
+        )
+
+        if not valid:
+            return None
+
+        db.expunge(
+            user
+        )
+
+        return user
+
+    finally:
+        db.close()

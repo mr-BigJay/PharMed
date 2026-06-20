@@ -1,42 +1,80 @@
 import pandas as pd
 
+from db import init_db
 from services.db_session import SessionLocal
 from models.center import Center
 
-db = SessionLocal()
 
-df = pd.read_excel(
-    "data/centers.xlsx",
-    header=None
-)
+def next_center_code(db, start_number):
+    number = start_number
 
-added = 0
+    while True:
+        code = f"C{number:03}"
+        exists = (
+            db.query(Center)
+            .filter_by(code=code)
+            .first()
+        )
 
-for _, row in df.iterrows():
+        if not exists:
+            return code, number + 1
 
-    center_name = str(row[0]).strip()
+        number += 1
 
-    if not center_name:
-        continue
 
-    exists = (
-        db.query(Center)
-        .filter_by(name=center_name)
-        .first()
-    )
+def main():
+    init_db()
+    db = SessionLocal()
 
-    if exists:
-        continue
+    try:
+        df = pd.read_excel(
+            "data/centers.xlsx",
+            header=None
+        )
 
-    center = Center(
-        code=f"C{added+1:03}",
-        name=center_name,
-        is_active=True
-    )
+        added = 0
+        next_number = db.query(Center).count() + 1
 
-    db.add(center)
-    added += 1
+        for _, row in df.iterrows():
 
-db.commit()
+            if pd.isna(row[0]):
+                continue
 
-print(f"{added} centers imported successfully.")
+            center_name = str(row[0]).strip()
+
+            if not center_name:
+                continue
+
+            exists = (
+                db.query(Center)
+                .filter_by(name=center_name)
+                .first()
+            )
+
+            if exists:
+                continue
+
+            center_code, next_number = next_center_code(
+                db,
+                next_number
+            )
+
+            center = Center(
+                code=center_code,
+                name=center_name,
+                is_active=True
+            )
+
+            db.add(center)
+            added += 1
+
+        db.commit()
+
+        print(f"{added} centers imported successfully.")
+
+    finally:
+        db.close()
+
+
+if __name__ == "__main__":
+    main()

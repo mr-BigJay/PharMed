@@ -10,8 +10,10 @@ from PySide6.QtWidgets import (
 
 class ActionCard(QFrame):
 
-    def __init__(self, title):
+    def __init__(self, title, callback=None):
         super().__init__()
+
+        self.callback = callback
 
         self.setObjectName(
             "actionCard"
@@ -57,20 +59,22 @@ class ActionCard(QFrame):
         )
         
         self.setCursor(
-        Qt.PointingHandCursor
+            Qt.PointingHandCursor
         )
-        def mousePressEvent(
-            self,
-            event
+
+    def mousePressEvent(
+        self,
+        event
+    ):
+
+        if callable(
+            self.callback
         ):
 
-            if hasattr(
-                self,
-                "callback"
-            ):
-        
-                self.callback()
+            self.callback()
+            event.accept()
+            return
 
-            super().mousePressEvent(
-                event
-            )
+        super().mousePressEvent(
+            event
+        )
