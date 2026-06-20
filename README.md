@@ -9,6 +9,9 @@ built with PySide6, SQLAlchemy, and SQLite.
 - Dashboard navigation for inventory, equipment, requests, users, and reports
 - Fully right-to-left inventory admin shell with a right sidebar and top bar
 - Item registration with category, form, unit, and minimum stock
+- Items menu has separate registration and list sections for drugs and
+  medical equipment; registration uses controlled menu fields for category,
+  item name, form, and unit
 - Per-unit opening stock and stock in/out transactions
 - Stock validation that blocks outgoing transactions above available quantity
 - Medical equipment inventory view

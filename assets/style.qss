@@ -388,3 +388,20 @@ QScrollArea,
 #dangerButton:hover {
     background: #DC2626;
 }
+
+#sectionButton {
+    background: #FFFFFF;
+    border: 1px solid #D8E3F2;
+    color: #0B2F66;
+    min-height: 44px;
+}
+
+#sectionButton:hover {
+    background: #EAF4FF;
+}
+
+#sectionButton[active="true"] {
+    background: #147BFF;
+    border: 1px solid #147BFF;
+    color: #FFFFFF;
+}

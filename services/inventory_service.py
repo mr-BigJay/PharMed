@@ -33,6 +33,32 @@ def get_categories():
         db.close()
 
 
+def get_item_names_by_category(
+    category_id
+):
+    db = SessionLocal()
+
+    try:
+        rows = (
+            db.query(Item.item_name)
+            .filter(
+                Item.category_id == category_id
+            )
+            .distinct()
+            .order_by(Item.item_name)
+            .all()
+        )
+
+        return [
+            row[0]
+            for row in rows
+            if row[0]
+        ]
+
+    finally:
+        db.close()
+
+
 def add_item(
     category_id,
     item_name,

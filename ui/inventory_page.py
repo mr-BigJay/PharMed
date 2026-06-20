@@ -27,6 +27,8 @@ class InventoryPage(QWidget):
 
         self.main_window = main_window
         self.inventory_rows = []
+        self.current_mode = "items"
+        self.current_item_section = "register"
 
         self.setup_ui()
 
@@ -54,6 +56,36 @@ class InventoryPage(QWidget):
         )
         layout.addWidget(
             self.title_label
+        )
+
+        self.item_section_layout = QHBoxLayout()
+        self.register_items_btn = QPushButton(
+            "ثبت اقلام دارویی و تجهیزات پزشکی"
+        )
+        self.register_items_btn.setObjectName(
+            "sectionButton"
+        )
+        self.register_items_btn.clicked.connect(
+            lambda: self.set_item_section("register")
+        )
+        self.list_items_btn = QPushButton(
+            "لیست اقلام دارویی و تجهیزات پزشکی"
+        )
+        self.list_items_btn.setObjectName(
+            "sectionButton"
+        )
+        self.list_items_btn.clicked.connect(
+            lambda: self.set_item_section("list")
+        )
+        self.item_section_layout.addWidget(
+            self.register_items_btn
+        )
+        self.item_section_layout.addWidget(
+            self.list_items_btn
+        )
+        self.item_section_layout.addStretch()
+        layout.addLayout(
+            self.item_section_layout
         )
 
         tools_layout = QHBoxLayout()
@@ -111,28 +143,32 @@ class InventoryPage(QWidget):
             self.inventory_table
         )
 
+        self.item_form_group = self.build_item_group()
+        self.stock_group = self.build_stock_group()
+        self.transaction_group = self.build_transaction_group()
+
         forms_layout = QHBoxLayout()
         forms_layout.addWidget(
-            self.build_item_group()
+            self.item_form_group
         )
         forms_layout.addWidget(
-            self.build_stock_group()
+            self.stock_group
         )
         forms_layout.addWidget(
-            self.build_transaction_group()
+            self.transaction_group
         )
         layout.addLayout(
             forms_layout
         )
 
-        transactions_title = QLabel(
+        self.transactions_title = QLabel(
             "آخرین تراکنش‌ها"
         )
-        transactions_title.setObjectName(
+        self.transactions_title.setObjectName(
             "welcomeTitle"
         )
         layout.addWidget(
-            transactions_title
+            self.transactions_title
         )
 
         self.transactions_table = QTableWidget()
@@ -187,8 +223,9 @@ class InventoryPage(QWidget):
         self,
         mode
     ):
+        self.current_mode = mode
         titles = {
-            "items": "اقلام و اطلاعات پایه کالا",
+            "items": "اقلام دارویی و تجهیزات پزشکی",
             "stock": "موجودی انبار",
             "stock_in": "ورود انبار",
             "stock_out": "خروج انبار",
@@ -218,6 +255,63 @@ class InventoryPage(QWidget):
                     index
                 )
 
+        self.update_mode_visibility()
+
+    def set_item_section(
+        self,
+        section
+    ):
+        self.current_item_section = section
+        self.update_mode_visibility()
+
+    def update_mode_visibility(self):
+        is_items_mode = self.current_mode == "items"
+
+        self.register_items_btn.setVisible(
+            is_items_mode
+        )
+        self.list_items_btn.setVisible(
+            is_items_mode
+        )
+        self.item_form_group.setVisible(
+            is_items_mode and self.current_item_section == "register"
+        )
+        self.inventory_table.setVisible(
+            self.current_mode != "items"
+            or self.current_item_section == "list"
+        )
+        self.stock_group.setVisible(
+            self.current_mode == "stock"
+        )
+        self.transaction_group.setVisible(
+            self.current_mode in ("stock_in", "stock_out")
+        )
+        self.transactions_title.setVisible(
+            self.current_mode in ("stock_in", "stock_out")
+        )
+        self.transactions_table.setVisible(
+            self.current_mode in ("stock_in", "stock_out")
+        )
+
+        self.register_items_btn.setProperty(
+            "active",
+            self.current_item_section == "register"
+        )
+        self.list_items_btn.setProperty(
+            "active",
+            self.current_item_section == "list"
+        )
+        for button in (
+            self.register_items_btn,
+            self.list_items_btn
+        ):
+            button.style().unpolish(
+                button
+            )
+            button.style().polish(
+                button
+            )
+
     def build_item_group(self):
         group = QGroupBox(
             "ثبت کالای جدید"
@@ -225,17 +319,62 @@ class InventoryPage(QWidget):
         form = QFormLayout(group)
 
         self.category_combo = QComboBox()
-        self.item_name_input = QLineEdit()
-        self.item_name_input.setPlaceholderText(
-            "نام کالا"
+        self.category_combo.currentIndexChanged.connect(
+            self.load_item_name_options
         )
-        self.item_form_input = QLineEdit()
-        self.item_form_input.setPlaceholderText(
-            "مثلاً قرص، آمپول، عدد"
+        self.item_name_combo = QComboBox()
+        self.item_name_combo.setPlaceholderText(
+            "انتخاب نام قلم"
         )
-        self.unit_input = QLineEdit()
-        self.unit_input.setPlaceholderText(
-            "عدد"
+        self.item_name_combo.currentIndexChanged.connect(
+            self.update_new_item_field
+        )
+        self.new_item_name_input = QLineEdit()
+        self.new_item_name_input.setPlaceholderText(
+            "نام عنوان جدید"
+        )
+        self.item_form_combo = QComboBox()
+        self.item_form_combo.addItems([
+            "بدون فرم",
+            "قرص",
+            "کپسول",
+            "شربت",
+            "آمپول",
+            "ویال",
+            "قطره",
+            "پماد",
+            "کرم",
+            "محلول",
+            "سرم",
+            "اسپری",
+            "ساشه",
+            "شیاف",
+            "ابزار مصرفی",
+            "دستکش",
+            "سرنگ",
+        ])
+        self.unit_combo = QComboBox()
+        self.unit_combo.addItems([
+            "عدد",
+            "بسته",
+            "جعبه",
+            "کارتن",
+            "شیشه",
+            "ویال",
+            "آمپول",
+            "تیوب",
+            "جفت",
+            "متر",
+            "رول",
+        ])
+        helper = QLabel(
+            "نام قلم از منوی اقلام موجود انتخاب می‌شود. برای ثبت عنوان جدید، گزینه افزودن عنوان جدید را انتخاب کنید."
+        )
+        helper.setObjectName(
+            "pageSubtitle"
+        )
+        helper.setWordWrap(
+            True
         )
         self.minimum_stock_input = QSpinBox()
         self.minimum_stock_input.setMaximum(
@@ -255,25 +394,37 @@ class InventoryPage(QWidget):
         )
         form.addRow(
             "نام:",
-            self.item_name_input
+            self.item_name_combo
+        )
+        form.addRow(
+            "عنوان جدید:",
+            self.new_item_name_input
         )
         form.addRow(
             "فرم:",
-            self.item_form_input
+            self.item_form_combo
         )
         form.addRow(
             "واحد:",
-            self.unit_input
+            self.unit_combo
         )
         form.addRow(
             "حداقل:",
             self.minimum_stock_input
         )
         form.addRow(
+            helper
+        )
+        form.addRow(
             add_btn
         )
 
         return group
+
+    def update_new_item_field(self):
+        self.new_item_name_input.setVisible(
+            self.item_name_combo.currentData() == "__new__"
+        )
 
     def build_stock_group(self):
         group = QGroupBox(
@@ -392,6 +543,31 @@ class InventoryPage(QWidget):
                 category.name,
                 category.id
             )
+
+        self.load_item_name_options()
+
+    def load_item_name_options(self):
+        if not hasattr(
+            self,
+            "item_name_combo"
+        ):
+            return
+
+        category_id = self.category_combo.currentData()
+        self.item_name_combo.clear()
+
+        for item_name in inventory_service.get_item_names_by_category(
+            category_id
+        ):
+            self.item_name_combo.addItem(
+                item_name
+            )
+
+        self.item_name_combo.addItem(
+            "➕ افزودن عنوان جدید",
+            "__new__"
+        )
+        self.update_new_item_field()
 
     def refresh_data(self):
         user = self.main_window.current_user
@@ -525,11 +701,20 @@ class InventoryPage(QWidget):
                 )
 
     def add_item(self):
+        item_name = (
+            self.new_item_name_input.text().strip()
+            if self.item_name_combo.currentData() == "__new__"
+            else self.item_name_combo.currentText()
+        )
         success, message = inventory_service.add_item(
             category_id=self.category_combo.currentData(),
-            item_name=self.item_name_input.text(),
-            item_form=self.item_form_input.text(),
-            unit=self.unit_input.text(),
+            item_name=item_name,
+            item_form=(
+                ""
+                if self.item_form_combo.currentText() == "بدون فرم"
+                else self.item_form_combo.currentText()
+            ),
+            unit=self.unit_combo.currentText(),
             minimum_stock=self.minimum_stock_input.value()
         )
 
@@ -539,13 +724,14 @@ class InventoryPage(QWidget):
         )
 
         if success:
-            self.item_name_input.clear()
-            self.item_form_input.clear()
-            self.unit_input.clear()
+            self.new_item_name_input.clear()
             self.minimum_stock_input.setValue(
                 0
             )
             self.refresh_data()
+            self.set_item_section(
+                "list"
+            )
 
     def save_opening_stock(self):
         success, message = inventory_service.set_opening_stock(
