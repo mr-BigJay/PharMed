@@ -34,340 +34,283 @@ class DashboardPage(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        root_layout = QHBoxLayout()
-        root_layout.setContentsMargins(
-            0,
-            0,
-            0,
-            0
-        )
-        root_layout.setSpacing(
-            0
-        )
-
-        root_layout.addWidget(
-            self.build_sidebar()
-        )
-        root_layout.addWidget(
-            self.build_content(),
-            stretch=1
-        )
-
-        self.setLayout(
-            root_layout
-        )
-
-    def build_sidebar(self):
-        sidebar = QFrame()
-        sidebar.setObjectName(
-            "sidebar"
-        )
-        sidebar.setFixedWidth(
-            230
-        )
-
-        layout = QVBoxLayout(sidebar)
-        layout.setContentsMargins(
-            18,
-            24,
-            18,
-            24
-        )
-        layout.setSpacing(
-            12
-        )
-
-        title = QLabel(
-            "مدیریت انبار دارو\nو اقلام پزشکی"
-        )
-        title.setObjectName(
-            "sidebarTitle"
-        )
-        title.setAlignment(
-            Qt.AlignCenter
-        )
-        layout.addWidget(
-            title
-        )
-
-        nav_items = [
-            ("داشبورد", self.main_window.show_dashboard),
-            ("مدیریت اقلام", self.main_window.show_inventory),
-            ("ورود کالا", self.main_window.show_inventory),
-            ("خروج کالا", self.main_window.show_inventory),
-            ("انتقال / درخواست کالا", self.main_window.show_requests),
-            ("تجهیزات پزشکی", self.main_window.show_equipment),
-            ("گزارشات", self.main_window.show_reports),
-        ]
-
-        if self.main_window.current_user and self.main_window.current_user.is_manager:
-            nav_items.append(
-                ("کاربران", self.main_window.show_users)
-            )
-
-        for title, callback in nav_items:
-            button = QPushButton(
-                title
-            )
-            button.setObjectName(
-                "sidebarButton"
-            )
-            button.clicked.connect(
-                callback
-            )
-            layout.addWidget(
-                button
-            )
-
-        layout.addStretch()
-
-        logout_btn = QPushButton(
-            "خروج"
-        )
-        logout_btn.setObjectName(
-            "logoutButton"
-        )
-        logout_btn.clicked.connect(
-            self.logout
-        )
-        layout.addWidget(
-            logout_btn
-        )
-
-        return sidebar
-
-    def build_content(self):
-        user = self.main_window.current_user
-        report = get_report_data(
-            user
-        )
-        transactions = list_recent_transactions(
-            user,
-            limit=6
-        )
-        pending_requests = self.count_pending_requests()
-        capacity = get_user_capacity(
-            user
-        )
-
-        content = QWidget()
-        main_layout = QVBoxLayout(content)
-        main_layout.setContentsMargins(
-            28,
-            24,
-            28,
-            24
-        )
-        main_layout.setSpacing(
-            18
-        )
-
-        main_layout.addWidget(
-            self.build_header()
-        )
-
-        stats_grid = QGridLayout()
-        stats_grid.setHorizontalSpacing(
-            12
-        )
-        stats_grid.setVerticalSpacing(
-            12
-        )
-        stat_cards = [
-            (
-                "کل اقلام موجود",
-                _format_value(report["total_items"]),
-                "قلم",
-                "blueStat",
-            ),
-            (
-                "موجودی کل",
-                _format_value(report["total_stock"]),
-                "عدد/واحد",
-                "greenStat",
-            ),
-            (
-                "ورود امروز",
-                _format_value(self.sum_today_transactions("in")),
-                "قلم",
-                "purpleStat",
-            ),
-            (
-                "خروج امروز",
-                _format_value(self.sum_today_transactions("out")),
-                "قلم",
-                "orangeStat",
-            ),
-            (
-                "اقلام کم موجودی",
-                _format_value(report["low_stock_count"]),
-                "نیاز به پیگیری",
-                "redStat",
-            ),
-        ]
-
-        for index, (title, value, subtitle, object_name) in enumerate(stat_cards):
-            stats_grid.addWidget(
-                self.build_stat_card(
-                    title,
-                    value,
-                    subtitle,
-                    object_name
-                ),
-                index // 5,
-                index % 5
-            )
-
-        main_layout.addLayout(
-            stats_grid
-        )
-
-        middle_layout = QHBoxLayout()
-        middle_layout.setSpacing(
-            12
-        )
-        middle_layout.addWidget(
-            self.build_low_stock_panel(
-                report["low_stock_rows"]
-            ),
-            stretch=1
-        )
-        middle_layout.addWidget(
-            self.build_quick_actions(
-                pending_requests,
-                capacity
-            ),
-            stretch=1
-        )
-        main_layout.addLayout(
-            middle_layout
-        )
-
-        main_layout.addWidget(
-            self.build_transactions_panel(
-                transactions
-            )
-        )
-
         scroll = QScrollArea()
+        scroll.setObjectName(
+            "pageScroll"
+        )
         scroll.setWidgetResizable(
             True
         )
         scroll.setFrameShape(
             QFrame.NoFrame
         )
+
+        content = QWidget()
+        content.setObjectName(
+            "pageCanvas"
+        )
+        layout = QVBoxLayout(content)
+        layout.setContentsMargins(
+            22,
+            18,
+            22,
+            22
+        )
+        layout.setSpacing(
+            16
+        )
+
+        layout.addWidget(
+            self.build_welcome_bar()
+        )
+        layout.addLayout(
+            self.build_metrics_grid()
+        )
+        layout.addLayout(
+            self.build_middle_grid()
+        )
+        layout.addLayout(
+            self.build_bottom_grid()
+        )
+
         scroll.setWidget(
             content
         )
 
-        return scroll
+        root_layout = QVBoxLayout()
+        root_layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+        root_layout.addWidget(
+            scroll
+        )
+        self.setLayout(
+            root_layout
+        )
 
-    def build_header(self):
+    def build_welcome_bar(self):
         user = self.main_window.current_user
-        full_name = (
+        name = (
             user.full_name
             if user
             else "کاربر"
         )
-        role_text = (
-            "مدیر واحد"
-            if user and user.is_manager
-            else "کاربر واحد"
+        title = QLabel(
+            f"👋 خوش آمدید، {name}"
+        )
+        title.setObjectName(
+            "heroTitle"
+        )
+        subtitle = QLabel(
+            "نمای کلی وضعیت انبار، موجودی‌ها و درخواست‌های واحد شما"
+        )
+        subtitle.setObjectName(
+            "heroSubtitle"
         )
 
-        header = QFrame()
-        header.setObjectName(
-            "dashboardHeader"
+        date_card = QFrame()
+        date_card.setObjectName(
+            "dateCard"
         )
-        layout = QHBoxLayout(header)
-
-        welcome = QLabel(
-            f"خوش آمدید، {full_name}"
+        date_layout = QVBoxLayout(date_card)
+        date_layout.setSpacing(
+            2
         )
-        welcome.setObjectName(
-            "dashboardWelcome"
+        date_layout.addWidget(
+            QLabel(
+                "امروز"
+            )
         )
-
-        role_label = QLabel(
-            role_text
+        date_value = QLabel(
+            datetime.now().strftime(
+                "%Y/%m/%d"
+            )
         )
-        role_label.setObjectName(
-            "dashboardRole"
+        date_value.setObjectName(
+            "dateValue"
         )
-
-        today = datetime.now().strftime(
-            "%Y/%m/%d - %H:%M"
-        )
-        date_label = QLabel(
-            today
-        )
-        date_label.setObjectName(
-            "dashboardDate"
+        date_layout.addWidget(
+            date_value
         )
 
-        layout.addWidget(
-            welcome
+        hero = QFrame()
+        hero.setObjectName(
+            "heroCard"
         )
-        layout.addWidget(
-            role_label
+        hero_layout = QHBoxLayout(hero)
+        text_layout = QVBoxLayout()
+        text_layout.addWidget(
+            title
         )
-        layout.addStretch()
-        layout.addWidget(
-            date_label
+        text_layout.addWidget(
+            subtitle
+        )
+        hero_layout.addLayout(
+            text_layout,
+            stretch=1
+        )
+        hero_layout.addWidget(
+            date_card
         )
 
-        return header
+        return hero
 
-    def build_stat_card(
+    def build_metrics_grid(self):
+        report = get_report_data(
+            self.main_window.current_user
+        )
+        pending_requests = self.count_pending_requests()
+
+        cards = [
+            (
+                "کل اقلام موجود",
+                _format_value(report["total_items"]),
+                "قلم",
+                "metricBlue",
+                "📦",
+            ),
+            (
+                "موجودی کل انبار",
+                _format_value(report["total_stock"]),
+                "عدد/واحد",
+                "metricGreen",
+                "🟢",
+            ),
+            (
+                "ورود امروز",
+                _format_value(self.sum_today_transactions("in")),
+                "قلم",
+                "metricPurple",
+                "⬇",
+            ),
+            (
+                "خروج امروز",
+                _format_value(self.sum_today_transactions("out")),
+                "قلم",
+                "metricOrange",
+                "⬆",
+            ),
+            (
+                "اقلام کم موجودی",
+                _format_value(report["low_stock_count"]),
+                "نیاز به پیگیری",
+                "metricRed",
+                "⚠",
+            ),
+            (
+                "درخواست‌های باز",
+                _format_value(pending_requests),
+                "در انتظار بررسی",
+                "metricSky",
+                "✉",
+            ),
+        ]
+
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(
+            12
+        )
+        grid.setVerticalSpacing(
+            12
+        )
+
+        for index, card in enumerate(cards):
+            grid.addWidget(
+                self.build_metric_card(*card),
+                index // 3,
+                index % 3
+            )
+
+        return grid
+
+    def build_metric_card(
         self,
         title,
         value,
         subtitle,
-        object_name
+        object_name,
+        icon
     ):
         card = QFrame()
         card.setObjectName(
             object_name
         )
         card.setMinimumHeight(
-            110
+            116
         )
+        layout = QHBoxLayout(card)
 
-        layout = QVBoxLayout(card)
-        layout.setSpacing(
-            6
+        icon_label = QLabel(
+            icon
         )
+        icon_label.setObjectName(
+            "metricIcon"
+        )
+        text_layout = QVBoxLayout()
 
         title_label = QLabel(
             title
         )
         title_label.setObjectName(
-            "statTitle"
+            "metricTitle"
         )
         value_label = QLabel(
             value
         )
         value_label.setObjectName(
-            "statValue"
+            "metricValue"
         )
         subtitle_label = QLabel(
             subtitle
         )
         subtitle_label.setObjectName(
-            "statSubtitle"
+            "metricSubtitle"
         )
 
-        layout.addWidget(
+        text_layout.addWidget(
             title_label
         )
-        layout.addWidget(
+        text_layout.addWidget(
             value_label
         )
-        layout.addWidget(
+        text_layout.addWidget(
             subtitle_label
         )
 
+        layout.addWidget(
+            icon_label
+        )
+        layout.addLayout(
+            text_layout,
+            stretch=1
+        )
+
         return card
+
+    def build_middle_grid(self):
+        report = get_report_data(
+            self.main_window.current_user
+        )
+
+        grid = QHBoxLayout()
+        grid.setSpacing(
+            14
+        )
+        grid.addWidget(
+            self.build_low_stock_panel(
+                report["low_stock_rows"]
+            ),
+            stretch=1
+        )
+        grid.addWidget(
+            self.build_quick_actions_panel(),
+            stretch=1
+        )
+
+        return grid
 
     def build_low_stock_panel(
         self,
@@ -375,7 +318,7 @@ class DashboardPage(QWidget):
     ):
         panel = QFrame()
         panel.setObjectName(
-            "dashboardPanel"
+            "panelCard"
         )
         layout = QVBoxLayout(panel)
 
@@ -405,17 +348,16 @@ class DashboardPage(QWidget):
         table.setRowCount(
             min(
                 len(rows),
-                6
+                5
             )
         )
 
-        for row_index, row in enumerate(rows[:6]):
-            shortage = row["minimum_stock"] - row["current_stock"]
+        for row_index, row in enumerate(rows[:5]):
             values = [
                 row["item_name"],
                 row["minimum_stock"],
                 row["current_stock"],
-                shortage,
+                row["minimum_stock"] - row["current_stock"],
             ]
             for column_index, value in enumerate(values):
                 item = QTableWidgetItem(
@@ -437,14 +379,10 @@ class DashboardPage(QWidget):
 
         return panel
 
-    def build_quick_actions(
-        self,
-        pending_requests,
-        capacity
-    ):
+    def build_quick_actions_panel(self):
         panel = QFrame()
         panel.setObjectName(
-            "dashboardPanel"
+            "panelCard"
         )
         layout = QVBoxLayout(panel)
 
@@ -458,44 +396,37 @@ class DashboardPage(QWidget):
             title
         )
 
-        actions_grid = QGridLayout()
+        grid = QGridLayout()
         actions = [
-            ("ورود کالا", self.main_window.show_inventory),
-            ("خروج کالا", self.main_window.show_inventory),
-            ("ثبت درخواست", self.main_window.show_requests),
-            ("گزارشات", self.main_window.show_reports),
+            ("⬇ ورود کالا", self.main_window.show_inventory, "quickGreen"),
+            ("⬆ خروج کالا", self.main_window.show_inventory, "quickRed"),
+            ("🔁 ثبت درخواست", self.main_window.show_requests, "quickBlue"),
+            ("📊 گزارشات", self.main_window.show_reports, "quickOrange"),
+            ("⚙ مدیریت اقلام", self.main_window.show_inventory, "quickPurple"),
+            ("👥 کاربران", self.main_window.show_users, "quickGray"),
         ]
 
-        if self.main_window.current_user and self.main_window.current_user.is_manager:
-            actions.append(
-                ("ایجاد کاربر", self.main_window.show_users)
-            )
-
-        for index, (title, callback) in enumerate(actions):
+        for index, (title, callback, object_name) in enumerate(actions):
             button = QPushButton(
                 title
             )
             button.setObjectName(
-                "quickActionButton"
+                object_name
             )
             button.clicked.connect(
                 callback
             )
-            actions_grid.addWidget(
+            grid.addWidget(
                 button,
-                index // 2,
-                index % 2
+                index // 3,
+                index % 3
             )
 
-        layout.addLayout(
-            actions_grid
+        capacity = get_user_capacity(
+            self.main_window.current_user
         )
-
         info = QLabel(
-            (
-                f"درخواست‌های در انتظار: {pending_requests}\n"
-                f"کاربران واحد: {capacity['registered']} از {capacity['max_users']}"
-            )
+            f"کاربران واحد: {capacity['registered']} از {capacity['max_users']}"
         )
         info.setObjectName(
             "panelInfo"
@@ -503,19 +434,41 @@ class DashboardPage(QWidget):
         info.setAlignment(
             Qt.AlignCenter
         )
+
+        layout.addLayout(
+            grid
+        )
         layout.addWidget(
             info
         )
 
         return panel
 
-    def build_transactions_panel(
-        self,
-        transactions
-    ):
+    def build_bottom_grid(self):
+        grid = QHBoxLayout()
+        grid.setSpacing(
+            14
+        )
+        grid.addWidget(
+            self.build_transactions_panel(),
+            stretch=2
+        )
+        grid.addWidget(
+            self.build_summary_panel(),
+            stretch=1
+        )
+
+        return grid
+
+    def build_transactions_panel(self):
+        transactions = list_recent_transactions(
+            self.main_window.current_user,
+            limit=7
+        )
+
         panel = QFrame()
         panel.setObjectName(
-            "dashboardPanel"
+            "panelCard"
         )
         layout = QVBoxLayout(panel)
 
@@ -571,6 +524,44 @@ class DashboardPage(QWidget):
 
         return panel
 
+    def build_summary_panel(self):
+        panel = QFrame()
+        panel.setObjectName(
+            "panelCard"
+        )
+        layout = QVBoxLayout(panel)
+
+        title = QLabel(
+            "خلاصه وضعیت"
+        )
+        title.setObjectName(
+            "panelTitle"
+        )
+        layout.addWidget(
+            title
+        )
+
+        rows = [
+            ("درخواست‌های باز", self.count_pending_requests()),
+            ("ورود امروز", self.sum_today_transactions("in")),
+            ("خروج امروز", self.sum_today_transactions("out")),
+        ]
+
+        for label, value in rows:
+            row = QLabel(
+                f"{label}: {_format_value(value)}"
+            )
+            row.setObjectName(
+                "summaryRow"
+            )
+            layout.addWidget(
+                row
+            )
+
+        layout.addStretch()
+
+        return panel
+
     def count_pending_requests(self):
         user = self.main_window.current_user
 
@@ -615,10 +606,6 @@ class DashboardPage(QWidget):
                 total += transaction["quantity"]
 
         return total
-
-    def logout(self):
-        self.main_window.current_user = None
-        self.main_window.show_login()
 
 
 def _format_value(value):

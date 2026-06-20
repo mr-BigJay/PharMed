@@ -7,6 +7,7 @@ built with PySide6, SQLAlchemy, and SQLite.
 
 - Mobile/password login and user registration for centers and health houses
 - Dashboard navigation for inventory, equipment, requests, users, and reports
+- Fully right-to-left inventory admin shell with a right sidebar and top bar
 - Item registration with category, form, unit, and minimum stock
 - Per-unit opening stock and stock in/out transactions
 - Stock validation that blocks outgoing transactions above available quantity

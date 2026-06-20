@@ -1,19 +1,26 @@
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
     QMainWindow,
-    QStackedWidget
+    QPushButton,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
 )
 
 from db import init_db
 
+from ui.dashboard_page import DashboardPage
+from ui.equipment_page import EquipmentPage
+from ui.inventory_page import InventoryPage
 from ui.login_window import LoginWindow
 from ui.register_window import RegisterWindow
-from ui.dashboard_page import DashboardPage
-
-from ui.inventory_page import InventoryPage
-from ui.equipment_page import EquipmentPage
+from ui.reports_page import ReportsPage
 from ui.requests_page import RequestsPage
 from ui.users_page import UsersPage
-from ui.reports_page import ReportsPage
 
 
 class MainWindow(QMainWindow):
@@ -26,179 +33,435 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(
             "PharMed"
         )
-
-        self.resize(
-            1180,
-            760
+        self.setLayoutDirection(
+            Qt.RightToLeft
         )
-
+        self.resize(
+            1366,
+            820
+        )
         self.setMinimumSize(
-            1050,
-            700
+            1180,
+            740
         )
 
         init_db()
 
-        self.stack = QStackedWidget()
-
+        self.root_stack = QStackedWidget()
         self.login_page = LoginWindow(
             self
         )
-
         self.register_page = RegisterWindow(
             self
         )
 
+        self.content_stack = QStackedWidget()
         self.dashboard_page = DashboardPage(
             self
         )
-
         self.inventory_page = InventoryPage(
             self
         )
-
         self.equipment_page = EquipmentPage(
             self
         )
-
         self.requests_page = RequestsPage(
             self
         )
-
         self.users_page = UsersPage(
             self
         )
-
         self.reports_page = ReportsPage(
             self
         )
 
-        self.stack.addWidget(
+        for page in (
+            self.dashboard_page,
+            self.inventory_page,
+            self.equipment_page,
+            self.requests_page,
+            self.users_page,
+            self.reports_page,
+        ):
+            self.content_stack.addWidget(
+                page
+            )
+
+        self.user_name_label = QLabel()
+        self.user_status_label = QLabel()
+        self.app_shell = self.build_app_shell()
+
+        self.root_stack.addWidget(
             self.login_page
         )
-
-        self.stack.addWidget(
+        self.root_stack.addWidget(
             self.register_page
         )
-
-        self.stack.addWidget(
-            self.dashboard_page
-        )
-
-        self.stack.addWidget(
-            self.inventory_page
-        )
-
-        self.stack.addWidget(
-            self.equipment_page
-        )
-
-        self.stack.addWidget(
-            self.requests_page
-        )
-
-        self.stack.addWidget(
-            self.users_page
-        )
-
-        self.stack.addWidget(
-            self.reports_page
+        self.root_stack.addWidget(
+            self.app_shell
         )
 
         self.setCentralWidget(
-            self.stack
+            self.root_stack
         )
-
         self.show_login()
 
-    def show_login(self):
+    def build_app_shell(self):
+        shell = QWidget()
+        shell.setObjectName(
+            "appShell"
+        )
+        layout = QHBoxLayout(shell)
+        layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+        layout.setSpacing(
+            0
+        )
 
-        self.stack.setCurrentWidget(
+        content_area = QWidget()
+        content_layout = QVBoxLayout(content_area)
+        content_layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+        content_layout.setSpacing(
+            0
+        )
+        content_layout.addWidget(
+            self.build_topbar()
+        )
+        content_layout.addWidget(
+            self.content_stack,
+            stretch=1
+        )
+
+        layout.addWidget(
+            content_area,
+            stretch=1
+        )
+        layout.addWidget(
+            self.build_sidebar()
+        )
+
+        return shell
+
+    def build_topbar(self):
+        topbar = QFrame()
+        topbar.setObjectName(
+            "topBar"
+        )
+        topbar.setFixedHeight(
+            72
+        )
+        layout = QHBoxLayout(topbar)
+        layout.setContentsMargins(
+            22,
+            12,
+            22,
+            12
+        )
+        layout.setSpacing(
+            16
+        )
+
+        menu_icon = QLabel(
+            "☰"
+        )
+        menu_icon.setObjectName(
+            "topIcon"
+        )
+
+        search_box = QLineEdit()
+        search_box.setObjectName(
+            "topSearch"
+        )
+        search_box.setPlaceholderText(
+            "جستجو در داروها، اقلام و درخواست‌ها..."
+        )
+        search_box.setMaximumWidth(
+            520
+        )
+
+        notif = QLabel(
+            "🔔  5"
+        )
+        notif.setObjectName(
+            "topBadge"
+        )
+        messages = QLabel(
+            "✉  2"
+        )
+        messages.setObjectName(
+            "topBadge"
+        )
+        settings = QLabel(
+            "⚙"
+        )
+        settings.setObjectName(
+            "topIcon"
+        )
+
+        user_box = QWidget()
+        user_layout = QVBoxLayout(user_box)
+        user_layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+        user_layout.setSpacing(
+            2
+        )
+        self.user_name_label.setObjectName(
+            "topUserName"
+        )
+        self.user_status_label.setObjectName(
+            "topUserStatus"
+        )
+        user_layout.addWidget(
+            self.user_name_label
+        )
+        user_layout.addWidget(
+            self.user_status_label
+        )
+
+        avatar = QLabel(
+            "👤"
+        )
+        avatar.setObjectName(
+            "avatar"
+        )
+
+        layout.addWidget(
+            menu_icon
+        )
+        layout.addStretch()
+        layout.addWidget(
+            search_box
+        )
+        layout.addStretch()
+        layout.addWidget(
+            settings
+        )
+        layout.addWidget(
+            messages
+        )
+        layout.addWidget(
+            notif
+        )
+        layout.addWidget(
+            user_box
+        )
+        layout.addWidget(
+            avatar
+        )
+
+        return topbar
+
+    def build_sidebar(self):
+        sidebar = QFrame()
+        sidebar.setObjectName(
+            "appSidebar"
+        )
+        sidebar.setFixedWidth(
+            245
+        )
+        layout = QVBoxLayout(sidebar)
+        layout.setContentsMargins(
+            14,
+            18,
+            14,
+            18
+        )
+        layout.setSpacing(
+            8
+        )
+
+        brand_icon = QLabel(
+            "✚"
+        )
+        brand_icon.setObjectName(
+            "brandIcon"
+        )
+        brand_title = QLabel(
+            "مدیریت انبار دارو\nو اقلام پزشکی"
+        )
+        brand_title.setObjectName(
+            "brandTitle"
+        )
+        brand_title.setAlignment(
+            Qt.AlignCenter
+        )
+
+        layout.addWidget(
+            brand_icon,
+            alignment=Qt.AlignCenter
+        )
+        layout.addWidget(
+            brand_title
+        )
+        layout.addSpacing(
+            10
+        )
+
+        nav_items = [
+            ("🏠  داشبورد", self.show_dashboard),
+            ("📦  مدیریت اقلام", self.show_inventory),
+            ("⬇  ورود کالا", self.show_inventory),
+            ("⬆  خروج کالا", self.show_inventory),
+            ("🔁  درخواست / انتقال", self.show_requests),
+            ("🏥  تجهیزات پزشکی", self.show_equipment),
+            ("📊  گزارشات", self.show_reports),
+            ("👥  کاربران", self.show_users),
+        ]
+
+        for title, callback in nav_items:
+            button = QPushButton(
+                title
+            )
+            button.setObjectName(
+                "navButton"
+            )
+            button.clicked.connect(
+                callback
+            )
+            layout.addWidget(
+                button
+            )
+
+        layout.addStretch()
+
+        footer = QLabel(
+            "PharMed v0.1\nشبکه بهداشت و درمان شهرستان"
+        )
+        footer.setObjectName(
+            "sidebarFooter"
+        )
+        footer.setAlignment(
+            Qt.AlignCenter
+        )
+        layout.addWidget(
+            footer
+        )
+
+        return sidebar
+
+    def update_topbar(self):
+        if self.current_user:
+            self.user_name_label.setText(
+                self.current_user.full_name
+            )
+            status = (
+                "مدیر واحد • آنلاین"
+                if self.current_user.is_manager
+                else "کاربر واحد • آنلاین"
+            )
+            self.user_status_label.setText(
+                status
+            )
+        else:
+            self.user_name_label.setText(
+                "کاربر"
+            )
+            self.user_status_label.setText(
+                "آفلاین"
+            )
+
+    def show_login(self):
+        self.root_stack.setCurrentWidget(
             self.login_page
         )
 
     def show_register(self):
-
-        self.stack.setCurrentWidget(
+        self.root_stack.setCurrentWidget(
             self.register_page
         )
 
-    def show_dashboard(self):
-
-        self.stack.removeWidget(
-            self.dashboard_page
+    def show_app_page(
+        self,
+        page
+    ):
+        self.update_topbar()
+        self.root_stack.setCurrentWidget(
+            self.app_shell
+        )
+        self.content_stack.setCurrentWidget(
+            page
         )
 
+    def show_dashboard(self):
+        self.content_stack.removeWidget(
+            self.dashboard_page
+        )
         self.dashboard_page.deleteLater()
-
         self.dashboard_page = DashboardPage(
             self
         )
-
-        self.stack.addWidget(
+        self.content_stack.insertWidget(
+            0,
             self.dashboard_page
         )
-
-        self.stack.setCurrentWidget(
+        self.show_app_page(
             self.dashboard_page
         )
 
     def show_inventory(self):
-
         if hasattr(
             self.inventory_page,
             "refresh_data"
         ):
             self.inventory_page.refresh_data()
 
-        self.stack.setCurrentWidget(
+        self.show_app_page(
             self.inventory_page
         )
 
     def show_equipment(self):
-
         if hasattr(
             self.equipment_page,
             "refresh_data"
         ):
             self.equipment_page.refresh_data()
 
-        self.stack.setCurrentWidget(
+        self.show_app_page(
             self.equipment_page
         )
 
     def show_requests(self):
-
         if hasattr(
             self.requests_page,
             "refresh_data"
         ):
             self.requests_page.refresh_data()
 
-        self.stack.setCurrentWidget(
+        self.show_app_page(
             self.requests_page
         )
 
     def show_users(self):
-
         if hasattr(
             self.users_page,
             "refresh_data"
         ):
             self.users_page.refresh_data()
 
-        self.stack.setCurrentWidget(
+        self.show_app_page(
             self.users_page
         )
 
     def show_reports(self):
-
         if hasattr(
             self.reports_page,
             "refresh_data"
         ):
             self.reports_page.refresh_data()
 
-        self.stack.setCurrentWidget(
+        self.show_app_page(
             self.reports_page
         )

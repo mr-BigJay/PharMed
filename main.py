@@ -1,5 +1,6 @@
 import sys
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from db import init_db
@@ -14,6 +15,9 @@ def main():
     init_db()
 
     app = QApplication(sys.argv)
+    app.setLayoutDirection(
+        Qt.RightToLeft
+    )
 
     try:
         bootstrap_reference_data()
