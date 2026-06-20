@@ -28,13 +28,13 @@ class MainWindow(QMainWindow):
         )
 
         self.resize(
-            900,
-            700
+            1180,
+            760
         )
 
         self.setMinimumSize(
-            850,
-            650
+            1050,
+            700
         )
 
         init_db()

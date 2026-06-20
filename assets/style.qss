@@ -105,3 +105,141 @@ QPushButton:pressed {
     font-size:12px;
     font-weight:600;
 }
+
+#sidebar {
+    background: #062B63;
+    border-left: 1px solid #0B3E89;
+}
+
+#sidebarTitle {
+    color: white;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.5;
+    margin-bottom: 18px;
+}
+
+#sidebarButton {
+    background: transparent;
+    color: #E5F0FF;
+    border: none;
+    border-radius: 10px;
+    text-align: right;
+    padding: 8px 14px;
+    min-height: 42px;
+    font-weight: 700;
+}
+
+#sidebarButton:hover {
+    background: #0B66D8;
+}
+
+#dashboardHeader,
+#dashboardPanel {
+    background: #0D2038;
+    border: 1px solid #1E3A5F;
+    border-radius: 18px;
+}
+
+#dashboardWelcome {
+    color: white;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+#dashboardRole {
+    color: #22C55E;
+    font-weight: 700;
+    padding: 6px 12px;
+}
+
+#dashboardDate,
+#panelInfo {
+    color: #CBD5E1;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#panelTitle {
+    color: white;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+#blueStat,
+#greenStat,
+#purpleStat,
+#orangeStat,
+#redStat {
+    border-radius: 18px;
+    padding: 14px;
+}
+
+#blueStat {
+    background: #0B3B71;
+    border: 1px solid #2563EB;
+}
+
+#greenStat {
+    background: #063D35;
+    border: 1px solid #10B981;
+}
+
+#purpleStat {
+    background: #34205F;
+    border: 1px solid #8B5CF6;
+}
+
+#orangeStat {
+    background: #4A2A08;
+    border: 1px solid #F59E0B;
+}
+
+#redStat {
+    background: #4A1018;
+    border: 1px solid #EF4444;
+}
+
+#statTitle {
+    color: #DBEAFE;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+#statValue {
+    color: white;
+    font-size: 26px;
+    font-weight: 900;
+}
+
+#statSubtitle {
+    color: #CBD5E1;
+    font-size: 12px;
+}
+
+#quickActionButton {
+    min-height: 56px;
+    background: #102845;
+    color: white;
+    border: 1px solid #2563EB;
+}
+
+#quickActionButton:hover {
+    background: #0B66D8;
+}
+
+QTableWidget {
+    background: #0B1B30;
+    border: 1px solid #1E3A5F;
+    border-radius: 12px;
+    gridline-color: #1E3A5F;
+    color: #F8FAFC;
+}
+
+QHeaderView::section {
+    background: #102845;
+    color: #E5F0FF;
+    border: none;
+    padding: 8px;
+    font-weight: 700;
+}

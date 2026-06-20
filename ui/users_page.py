@@ -1,7 +1,10 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QFormLayout,
+    QGroupBox,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QMessageBox,
     QPushButton,
     QTableWidget,
@@ -10,7 +13,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from services.auth_service import (
+    validate_mobile,
+    validate_persian,
+)
 from services.user_service import (
+    create_unit_user,
+    get_user_capacity,
     list_unit_users,
     set_user_active,
 )
@@ -23,6 +32,11 @@ class UsersPage(QWidget):
 
         self.main_window = main_window
         self.users = []
+        self.capacity = {
+            "registered": 0,
+            "max_users": 0,
+            "remaining": 0,
+        }
         self.setup_ui()
 
     def setup_ui(self):
@@ -59,6 +73,11 @@ class UsersPage(QWidget):
         )
         layout.addWidget(
             self.info_label
+        )
+
+        self.create_user_group = self.build_create_user_group()
+        layout.addWidget(
+            self.create_user_group
         )
 
         actions_layout = QHBoxLayout()
@@ -135,6 +154,61 @@ class UsersPage(QWidget):
 
         self.refresh_data()
 
+    def build_create_user_group(self):
+        group = QGroupBox(
+            "ایجاد کاربر جدید برای همین واحد"
+        )
+        form = QFormLayout(group)
+
+        self.first_name_input = QLineEdit()
+        self.first_name_input.setPlaceholderText(
+            "نام"
+        )
+        self.last_name_input = QLineEdit()
+        self.last_name_input.setPlaceholderText(
+            "نام خانوادگی"
+        )
+        self.mobile_input = QLineEdit()
+        self.mobile_input.setPlaceholderText(
+            "09xxxxxxxxx"
+        )
+        self.password_input = QLineEdit()
+        self.password_input.setPlaceholderText(
+            "رمز عبور"
+        )
+        self.password_input.setEchoMode(
+            QLineEdit.Password
+        )
+
+        create_btn = QPushButton(
+            "ایجاد کاربر"
+        )
+        create_btn.clicked.connect(
+            self.create_user
+        )
+
+        form.addRow(
+            "نام:",
+            self.first_name_input
+        )
+        form.addRow(
+            "نام خانوادگی:",
+            self.last_name_input
+        )
+        form.addRow(
+            "موبایل:",
+            self.mobile_input
+        )
+        form.addRow(
+            "رمز عبور:",
+            self.password_input
+        )
+        form.addRow(
+            create_btn
+        )
+
+        return group
+
     def refresh_data(self):
         user = self.main_window.current_user
 
@@ -143,15 +217,97 @@ class UsersPage(QWidget):
                 "فقط مدیر واحد به مدیریت کاربران دسترسی دارد."
             )
             self.users = []
+            self.capacity = {
+                "registered": 0,
+                "max_users": 0,
+                "remaining": 0,
+            }
+            self.create_user_group.setEnabled(
+                False
+            )
         else:
+            self.capacity = get_user_capacity(
+                user
+            )
             self.users = list_unit_users(
                 user
             )
             self.info_label.setText(
-                f"{len(self.users)} کاربر در محدوده دسترسی شما"
+                (
+                    f"{self.capacity['registered']} از "
+                    f"{self.capacity['max_users']} کاربر ثبت شده | "
+                    f"ظرفیت باقی‌مانده: {self.capacity['remaining']}"
+                )
+            )
+            self.create_user_group.setEnabled(
+                self.capacity["remaining"] > 0
             )
 
         self.fill_table()
+
+    def create_user(self):
+        first_name = self.first_name_input.text().strip()
+        last_name = self.last_name_input.text().strip()
+        mobile = self.mobile_input.text().strip()
+        password = self.password_input.text()
+
+        if not validate_persian(first_name):
+            QMessageBox.warning(
+                self,
+                "خطا",
+                "نام باید فارسی باشد"
+            )
+            return
+
+        if not validate_persian(last_name):
+            QMessageBox.warning(
+                self,
+                "خطا",
+                "نام خانوادگی باید فارسی باشد"
+            )
+            return
+
+        if not validate_mobile(mobile):
+            QMessageBox.warning(
+                self,
+                "خطا",
+                "شماره موبایل معتبر نیست"
+            )
+            return
+
+        if len(password) < 6:
+            QMessageBox.warning(
+                self,
+                "خطا",
+                "رمز عبور حداقل 6 کاراکتر باشد"
+            )
+            return
+
+        success, message = create_unit_user(
+            self.main_window.current_user,
+            first_name,
+            last_name,
+            mobile,
+            password
+        )
+
+        if success:
+            QMessageBox.information(
+                self,
+                "موفق",
+                message
+            )
+            self.first_name_input.clear()
+            self.last_name_input.clear()
+            self.mobile_input.clear()
+            self.password_input.clear()
+            self.refresh_data()
+        else:
+            QMessageBox.warning(
+                self,
+                "خطا",
+                message
+            )
 
     def fill_table(self):
         self.users_table.setRowCount(

@@ -266,7 +266,8 @@ class RegisterWindow(QWidget):
             password=password,
             role=role,
             center_id=center_id,
-            health_house_id=health_house_id
+            health_house_id=health_house_id,
+            require_manager=True
         )
 
         if success:
