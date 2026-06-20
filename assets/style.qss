@@ -1,0 +1,107 @@
+QWidget {
+    background-color: #071426;
+    color: #F8FAFC;
+    font-family: Vazirmatn;
+    font-size: 14px;
+}
+
+QLabel {
+    color: #F8FAFC;
+    background: transparent;
+}
+
+QLineEdit,
+QComboBox {
+    background-color: #0D2038;
+    border: 1px solid #1E3A5F;
+    border-radius: 12px;
+    padding: 12px;
+    color: white;
+    min-height: 24px;
+}
+
+QLineEdit:focus,
+QComboBox:focus {
+    border: 2px solid #2DD4BF;
+}
+
+QPushButton {
+    background-color: #2DD4BF;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: bold;
+    min-height: 48px;
+}
+
+QPushButton:hover {
+    background-color: #14B8A6;
+}
+
+QPushButton:pressed {
+    background-color: #0F766E;
+}
+#statCard {
+    background:#0D2038;
+    border:1px solid #1E3A5F;
+    border-radius:18px;
+
+    min-height:80px;
+    max-height:100px;
+}
+
+#actionCard {
+    background:#0D2038;
+    border:1px solid #2DD4BF;
+    border-radius:18px;
+
+    min-height:45px;
+    max-height:55px;
+}
+
+#actionCard:hover {
+    background:#102845;
+}
+#pageTitle{
+    font-size:34px;
+    font-weight:700;
+    color:#FFFFFF;
+    margin-top:20px;
+}
+
+#pageSubtitle{
+    font-size:15px;
+    color:#CBD5E1;
+    margin-bottom:15px;
+}
+#welcomeCard {
+    background:#0D2038;
+    border:1px solid #1E3A5F;
+    border-radius:18px;
+    padding:20px;
+}
+
+#welcomeTitle {
+    font-size:18px;
+    font-weight:700;
+    color:white;
+}
+
+#welcomeLocation {
+    font-size:16px;
+    color:#2DD4BF;
+    margin-top:10px;
+}
+
+
+#usersCountLabel{
+    color:#22d3ee;
+    font-size:11px;
+    font-weight:600;
+}
+
+#welcomeInfo{
+    color:#cbd5e1;
+    font-size:12px;
+    font-weight:600;
+}
