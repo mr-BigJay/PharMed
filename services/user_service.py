@@ -115,3 +115,109 @@ def create_user(
     finally:
 
         db.close()
+
+
+def list_unit_users(
+    current_user
+):
+    db = SessionLocal()
+
+    try:
+        query = db.query(User)
+        query = _apply_user_scope(
+            query,
+            current_user
+        )
+
+        rows = []
+        for user in query.order_by(User.last_name, User.first_name).all():
+            rows.append({
+                "id": user.id,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "full_name": user.full_name,
+                "mobile": user.mobile,
+                "role": user.role,
+                "is_manager": user.is_manager,
+                "is_active": user.is_active,
+                "center_id": user.center_id,
+                "health_house_id": user.health_house_id,
+            })
+
+        return rows
+
+    finally:
+        db.close()
+
+
+def set_user_active(
+    current_user,
+    user_id,
+    is_active
+):
+    db = SessionLocal()
+
+    try:
+        if not current_user or not current_user.is_manager:
+            return (
+                False,
+                "فقط مدیر واحد اجازه مدیریت کاربران را دارد"
+            )
+
+        if current_user.id == user_id and not is_active:
+            return (
+                False,
+                "امکان غیرفعال کردن حساب خودتان وجود ندارد"
+            )
+
+        query = db.query(User).filter(
+            User.id == user_id
+        )
+        query = _apply_user_scope(
+            query,
+            current_user
+        )
+
+        user = query.first()
+
+        if not user:
+            return (
+                False,
+                "کاربر مورد نظر پیدا نشد"
+            )
+
+        user.is_active = is_active
+        db.commit()
+
+        return (
+            True,
+            "وضعیت کاربر به‌روزرسانی شد"
+        )
+
+    except Exception as e:
+        db.rollback()
+        return (
+            False,
+            f"خطا در به‌روزرسانی کاربر: {str(e)}"
+        )
+
+    finally:
+        db.close()
+
+
+def _apply_user_scope(
+    query,
+    current_user
+):
+    if current_user and current_user.health_house_id:
+        return query.filter(
+            User.health_house_id == current_user.health_house_id
+        )
+
+    if current_user and current_user.center_id:
+        return query.filter(
+            User.center_id == current_user.center_id,
+            User.health_house_id.is_(None)
+        )
+
+    return query

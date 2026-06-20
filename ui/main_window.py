@@ -145,11 +145,23 @@ class MainWindow(QMainWindow):
 
     def show_inventory(self):
 
+        if hasattr(
+            self.inventory_page,
+            "refresh_data"
+        ):
+            self.inventory_page.refresh_data()
+
         self.stack.setCurrentWidget(
             self.inventory_page
         )
 
     def show_equipment(self):
+
+        if hasattr(
+            self.equipment_page,
+            "refresh_data"
+        ):
+            self.equipment_page.refresh_data()
 
         self.stack.setCurrentWidget(
             self.equipment_page
@@ -157,17 +169,35 @@ class MainWindow(QMainWindow):
 
     def show_requests(self):
 
+        if hasattr(
+            self.requests_page,
+            "refresh_data"
+        ):
+            self.requests_page.refresh_data()
+
         self.stack.setCurrentWidget(
             self.requests_page
         )
 
     def show_users(self):
 
+        if hasattr(
+            self.users_page,
+            "refresh_data"
+        ):
+            self.users_page.refresh_data()
+
         self.stack.setCurrentWidget(
             self.users_page
         )
 
     def show_reports(self):
+
+        if hasattr(
+            self.reports_page,
+            "refresh_data"
+        ):
+            self.reports_page.refresh_data()
 
         self.stack.setCurrentWidget(
             self.reports_page
