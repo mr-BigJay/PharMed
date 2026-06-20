@@ -6,7 +6,6 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLabel,
-    QLineEdit,
     QMessageBox,
     QPushButton,
     QTableWidget,
@@ -17,11 +16,8 @@ from PySide6.QtWidgets import (
 
 from services.inventory_service import list_inventory
 from services.request_service import (
-    STATUS_APPROVED,
-    STATUS_REJECTED,
     create_request,
     list_requests,
-    update_request_status,
 )
 
 
@@ -32,6 +28,8 @@ class RequestsPage(QWidget):
 
         self.main_window = main_window
         self.requests = []
+        self.inventory_rows = []
+        self.current_section = "form"
         self.setup_ui()
 
     def setup_ui(self):
@@ -59,12 +57,57 @@ class RequestsPage(QWidget):
             title
         )
 
-        form_group = QGroupBox(
-            "ثبت درخواست جدید"
+        sections_layout = QHBoxLayout()
+        self.form_section_btn = QPushButton(
+            "فرم درخواست"
         )
-        form = QFormLayout(form_group)
+        self.form_section_btn.setObjectName(
+            "sectionButton"
+        )
+        self.form_section_btn.clicked.connect(
+            lambda: self.set_section("form")
+        )
+        self.list_section_btn = QPushButton(
+            "لیست درخواست‌های تأمین کالا"
+        )
+        self.list_section_btn.setObjectName(
+            "sectionButton"
+        )
+        self.list_section_btn.clicked.connect(
+            lambda: self.set_section("list")
+        )
+        sections_layout.addWidget(
+            self.form_section_btn
+        )
+        sections_layout.addWidget(
+            self.list_section_btn
+        )
+        sections_layout.addStretch()
+        layout.addLayout(
+            sections_layout
+        )
+
+        self.form_group = QGroupBox(
+            "فرم درخواست"
+        )
+        form = QFormLayout(self.form_group)
 
         self.item_combo = QComboBox()
+        self.item_combo.currentIndexChanged.connect(
+            self.update_item_details
+        )
+        self.form_value_label = QLabel(
+            "-"
+        )
+        self.form_value_label.setObjectName(
+            "summaryRow"
+        )
+        self.unit_value_label = QLabel(
+            "-"
+        )
+        self.unit_value_label.setObjectName(
+            "summaryRow"
+        )
         self.quantity_input = QDoubleSpinBox()
         self.quantity_input.setMaximum(
             100000000
@@ -72,13 +115,9 @@ class RequestsPage(QWidget):
         self.quantity_input.setDecimals(
             2
         )
-        self.description_input = QLineEdit()
-        self.description_input.setPlaceholderText(
-            "توضیحات اختیاری"
-        )
 
         submit_btn = QPushButton(
-            "ثبت درخواست"
+            "ثبت درخواست و بازگشت"
         )
         submit_btn.clicked.connect(
             self.submit_request
@@ -89,20 +128,28 @@ class RequestsPage(QWidget):
             self.item_combo
         )
         form.addRow(
-            "تعداد:",
-            self.quantity_input
+            "فرم:",
+            self.form_value_label
         )
         form.addRow(
-            "توضیحات:",
-            self.description_input
+            "واحد:",
+            self.unit_value_label
+        )
+        form.addRow(
+            "تعداد:",
+            self.quantity_input
         )
         form.addRow(
             submit_btn
         )
         layout.addWidget(
-            form_group
+            self.form_group
         )
 
+        self.list_group = QGroupBox(
+            "لیست درخواست‌های تأمین کالا"
+        )
+        list_layout = QVBoxLayout(self.list_group)
         actions_layout = QHBoxLayout()
         refresh_btn = QPushButton(
             "به‌روزرسانی"
@@ -110,29 +157,11 @@ class RequestsPage(QWidget):
         refresh_btn.clicked.connect(
             self.refresh_data
         )
-        approve_btn = QPushButton(
-            "تأیید درخواست"
-        )
-        approve_btn.clicked.connect(
-            lambda: self.change_request_status(STATUS_APPROVED)
-        )
-        reject_btn = QPushButton(
-            "رد درخواست"
-        )
-        reject_btn.clicked.connect(
-            lambda: self.change_request_status(STATUS_REJECTED)
-        )
         actions_layout.addWidget(
             refresh_btn
         )
-        actions_layout.addWidget(
-            approve_btn
-        )
-        actions_layout.addWidget(
-            reject_btn
-        )
         actions_layout.addStretch()
-        layout.addLayout(
+        list_layout.addLayout(
             actions_layout
         )
 
@@ -156,14 +185,50 @@ class RequestsPage(QWidget):
         self.table.setSelectionBehavior(
             QTableWidget.SelectRows
         )
-        layout.addWidget(
+        list_layout.addWidget(
             self.table
+        )
+        layout.addWidget(
+            self.list_group
         )
 
         self.setLayout(
             layout
         )
         self.refresh_data()
+        self.set_section(
+            "form"
+        )
+
+    def set_section(
+        self,
+        section
+    ):
+        self.current_section = section
+        self.form_group.setVisible(
+            section == "form"
+        )
+        self.list_group.setVisible(
+            section == "list"
+        )
+        self.form_section_btn.setProperty(
+            "active",
+            section == "form"
+        )
+        self.list_section_btn.setProperty(
+            "active",
+            section == "list"
+        )
+        for button in (
+            self.form_section_btn,
+            self.list_section_btn
+        ):
+            button.style().unpolish(
+                button
+            )
+            button.style().polish(
+                button
+            )
 
     def refresh_data(self):
         self.load_items()
@@ -175,10 +240,11 @@ class RequestsPage(QWidget):
     def load_items(self):
         current_item_id = self.item_combo.currentData()
         self.item_combo.clear()
-
-        for row in list_inventory(
+        self.inventory_rows = list_inventory(
             self.main_window.current_user
-        ):
+        )
+
+        for row in self.inventory_rows:
             label = (
                 f"{row['item_name']} "
                 f"{row['item_form']}"
@@ -196,6 +262,35 @@ class RequestsPage(QWidget):
                 self.item_combo.setCurrentIndex(
                     index
                 )
+
+        self.update_item_details()
+
+    def update_item_details(self):
+        item_id = self.item_combo.currentData()
+        selected_row = next(
+            (
+                row
+                for row in self.inventory_rows
+                if row["item_id"] == item_id
+            ),
+            None
+        )
+
+        if not selected_row:
+            self.form_value_label.setText(
+                "-"
+            )
+            self.unit_value_label.setText(
+                "-"
+            )
+            return
+
+        self.form_value_label.setText(
+            selected_row["item_form"] or "-"
+        )
+        self.unit_value_label.setText(
+            selected_row["unit"] or "-"
+        )
 
     def fill_table(self):
         self.table.setRowCount(
@@ -235,7 +330,7 @@ class RequestsPage(QWidget):
             user=self.main_window.current_user,
             item_id=self.item_combo.currentData(),
             quantity=self.quantity_input.value(),
-            description=self.description_input.text()
+            description=""
         )
 
         self.show_result(
@@ -247,39 +342,8 @@ class RequestsPage(QWidget):
             self.quantity_input.setValue(
                 0
             )
-            self.description_input.clear()
             self.refresh_data()
-
-    def change_request_status(
-        self,
-        status
-    ):
-        selected_items = self.table.selectedItems()
-
-        if not selected_items:
-            QMessageBox.warning(
-                self,
-                "خطا",
-                "ابتدا یک درخواست را انتخاب کنید"
-            )
-            return
-
-        selected_row = selected_items[0].row()
-        request_id = self.requests[selected_row]["id"]
-
-        success, message = update_request_status(
-            self.main_window.current_user,
-            request_id,
-            status
-        )
-
-        self.show_result(
-            success,
-            message
-        )
-
-        if success:
-            self.refresh_data()
+            self.main_window.show_dashboard()
 
     def show_result(
         self,

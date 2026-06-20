@@ -321,7 +321,7 @@ class MainWindow(QMainWindow):
             ("items", "📦  اقلام", self.show_items),
             ("stock_in", "⬇  ورود انبار", self.show_stock_in),
             ("stock_out", "⬆  خروج انبار", self.show_stock_out),
-            ("requests", "🔁  درخواست / انتقال", self.show_requests),
+            ("requests", "🔁  درخواست", self.show_requests),
             ("stock", "🏬  موجودی انبار", self.show_stock_balance),
             ("equipment", "🏥  تجهیزات پزشکی", self.show_equipment),
             ("reports", "📊  گزارشات", self.show_reports),

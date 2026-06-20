@@ -20,6 +20,8 @@ built with PySide6, SQLAlchemy, and SQLite.
 - Stock validation that blocks outgoing transactions above available quantity
 - Medical equipment inventory view
 - Stock request registration and manager approval/rejection workflow
+- Request menu has separate sections for the request form and previously
+  submitted item supply requests
 - Basic inventory reports and low-stock report
 - Unit manager user list with activation/deactivation controls
 - Automatic first-run bootstrap for categories, centers, health houses,
