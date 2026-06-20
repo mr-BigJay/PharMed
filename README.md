@@ -13,6 +13,8 @@ built with PySide6, SQLAlchemy, and SQLite.
   medical equipment; registration uses controlled menu fields for category,
   item name, form, and unit
 - Per-unit opening stock and stock in/out transactions
+- Stock-in menu has separate sections for registering a new stock entry and
+  listing previously registered stock entries
 - Stock validation that blocks outgoing transactions above available quantity
 - Medical equipment inventory view
 - Stock request registration and manager approval/rejection workflow

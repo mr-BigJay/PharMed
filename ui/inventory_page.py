@@ -29,6 +29,7 @@ class InventoryPage(QWidget):
         self.inventory_rows = []
         self.current_mode = "items"
         self.current_item_section = "register"
+        self.current_stock_in_section = "register"
 
         self.setup_ui()
 
@@ -86,6 +87,36 @@ class InventoryPage(QWidget):
         self.item_section_layout.addStretch()
         layout.addLayout(
             self.item_section_layout
+        )
+
+        self.stock_in_section_layout = QHBoxLayout()
+        self.register_stock_in_btn = QPushButton(
+            "ثبت ورود به انبار"
+        )
+        self.register_stock_in_btn.setObjectName(
+            "sectionButton"
+        )
+        self.register_stock_in_btn.clicked.connect(
+            lambda: self.set_stock_in_section("register")
+        )
+        self.list_stock_in_btn = QPushButton(
+            "لیست ورودهای ثبت‌شده"
+        )
+        self.list_stock_in_btn.setObjectName(
+            "sectionButton"
+        )
+        self.list_stock_in_btn.clicked.connect(
+            lambda: self.set_stock_in_section("list")
+        )
+        self.stock_in_section_layout.addWidget(
+            self.register_stock_in_btn
+        )
+        self.stock_in_section_layout.addWidget(
+            self.list_stock_in_btn
+        )
+        self.stock_in_section_layout.addStretch()
+        layout.addLayout(
+            self.stock_in_section_layout
         )
 
         tools_layout = QHBoxLayout()
@@ -238,6 +269,7 @@ class InventoryPage(QWidget):
         )
 
         if mode == "stock_in":
+            self.current_stock_in_section = "register"
             index = self.transaction_type_combo.findData(
                 inventory_service.TRANSACTION_IN
             )
@@ -255,6 +287,31 @@ class InventoryPage(QWidget):
                     index
                 )
 
+        self.transaction_type_combo.setEnabled(
+            mode not in ("stock_in", "stock_out")
+        )
+        if mode == "stock_in":
+            self.transaction_group.setTitle(
+                "ثبت ورود به انبار"
+            )
+            self.transactions_title.setText(
+                "لیست ورودهای ثبت‌شده"
+            )
+        elif mode == "stock_out":
+            self.transaction_group.setTitle(
+                "ثبت خروج از انبار"
+            )
+            self.transactions_title.setText(
+                "لیست خروج‌های ثبت‌شده"
+            )
+        else:
+            self.transaction_group.setTitle(
+                "ثبت ورود / خروج"
+            )
+            self.transactions_title.setText(
+                "آخرین تراکنش‌ها"
+            )
+
         self.update_mode_visibility()
 
     def set_item_section(
@@ -264,8 +321,16 @@ class InventoryPage(QWidget):
         self.current_item_section = section
         self.update_mode_visibility()
 
+    def set_stock_in_section(
+        self,
+        section
+    ):
+        self.current_stock_in_section = section
+        self.update_mode_visibility()
+
     def update_mode_visibility(self):
         is_items_mode = self.current_mode == "items"
+        is_stock_in_mode = self.current_mode == "stock_in"
 
         self.register_items_btn.setVisible(
             is_items_mode
@@ -273,24 +338,51 @@ class InventoryPage(QWidget):
         self.list_items_btn.setVisible(
             is_items_mode
         )
+        self.register_stock_in_btn.setVisible(
+            is_stock_in_mode
+        )
+        self.list_stock_in_btn.setVisible(
+            is_stock_in_mode
+        )
         self.item_form_group.setVisible(
             is_items_mode and self.current_item_section == "register"
         )
         self.inventory_table.setVisible(
-            self.current_mode != "items"
-            or self.current_item_section == "list"
+            (
+                is_items_mode
+                and self.current_item_section == "list"
+            )
+            or self.current_mode == "stock"
         )
         self.stock_group.setVisible(
             self.current_mode == "stock"
         )
         self.transaction_group.setVisible(
-            self.current_mode in ("stock_in", "stock_out")
+            (
+                self.current_mode == "stock_out"
+                or (
+                    is_stock_in_mode
+                    and self.current_stock_in_section == "register"
+                )
+            )
         )
         self.transactions_title.setVisible(
-            self.current_mode in ("stock_in", "stock_out")
+            (
+                self.current_mode == "stock_out"
+                or (
+                    is_stock_in_mode
+                    and self.current_stock_in_section == "list"
+                )
+            )
         )
         self.transactions_table.setVisible(
-            self.current_mode in ("stock_in", "stock_out")
+            (
+                self.current_mode == "stock_out"
+                or (
+                    is_stock_in_mode
+                    and self.current_stock_in_section == "list"
+                )
+            )
         )
 
         self.register_items_btn.setProperty(
@@ -301,9 +393,19 @@ class InventoryPage(QWidget):
             "active",
             self.current_item_section == "list"
         )
+        self.register_stock_in_btn.setProperty(
+            "active",
+            self.current_stock_in_section == "register"
+        )
+        self.list_stock_in_btn.setProperty(
+            "active",
+            self.current_stock_in_section == "list"
+        )
         for button in (
             self.register_items_btn,
-            self.list_items_btn
+            self.list_items_btn,
+            self.register_stock_in_btn,
+            self.list_stock_in_btn
         ):
             button.style().unpolish(
                 button
@@ -650,6 +752,21 @@ class InventoryPage(QWidget):
         transactions = inventory_service.list_recent_transactions(
             self.main_window.current_user
         )
+        if self.current_mode == "stock_in":
+            transactions = [
+                transaction
+                for transaction in transactions
+                if transaction["transaction_type"] ==
+                inventory_service.TRANSACTION_IN
+            ]
+        elif self.current_mode == "stock_out":
+            transactions = [
+                transaction
+                for transaction in transactions
+                if transaction["transaction_type"] ==
+                inventory_service.TRANSACTION_OUT
+            ]
+
         self.transactions_table.setRowCount(
             len(transactions)
         )
