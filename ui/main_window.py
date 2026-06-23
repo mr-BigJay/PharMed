@@ -292,13 +292,17 @@ class MainWindow(QMainWindow):
         brand_title.setAlignment(
             Qt.AlignCenter
         )
+        brand_title.setWordWrap(
+            True
+        )
 
         layout.addWidget(
             brand_icon,
             alignment=Qt.AlignCenter
         )
         layout.addWidget(
-            brand_title
+            brand_title,
+            alignment=Qt.AlignCenter
         )
         layout.addSpacing(
             10

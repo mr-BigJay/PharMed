@@ -241,30 +241,36 @@ QScrollArea,
 
 #brandTitle {
     color: #FFFFFF;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 900;
-    line-height: 1.6;
+    line-height: 1.8;
     margin-bottom: 12px;
+    padding: 2px 8px 10px 8px;
+    qproperty-alignment: AlignCenter;
 }
 
 #navButton {
     background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.24);
     border-radius: 12px;
     color: #E7F0FF;
     font-size: 14px;
     font-weight: 800;
     min-height: 44px;
-    padding: 8px 14px;
-    text-align: right;
+    padding: 8px 12px;
+    text-align: center;
+    min-width: 100%;
 }
 
 #navButton:hover {
     background: #0A4E9B;
+    border: 1px solid rgba(255, 255, 255, 0.38);
 }
 
 #navButton[active="true"] {
     background: #147BFF;
     color: #FFFFFF;
+    border: 1px solid #147BFF;
 }
 
 #sidebarFooter {
