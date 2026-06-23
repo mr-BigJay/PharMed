@@ -55,10 +55,11 @@ class InventoryPage(QWidget):
             "pageTitle"
         )
         self.title_label.setAlignment(
-            Qt.AlignRight
+            Qt.AlignCenter
         )
         layout.addWidget(
-            self.title_label
+            self.title_label,
+            alignment=Qt.AlignHCenter
         )
 
         self.item_section_layout = QHBoxLayout()
@@ -80,6 +81,7 @@ class InventoryPage(QWidget):
         self.list_items_btn.clicked.connect(
             lambda: self.set_item_section("list")
         )
+        self.item_section_layout.addStretch()
         self.item_section_layout.addWidget(
             self.register_items_btn
         )
@@ -110,6 +112,7 @@ class InventoryPage(QWidget):
         self.list_stock_in_btn.clicked.connect(
             lambda: self.set_stock_in_section("list")
         )
+        self.stock_in_section_layout.addStretch()
         self.stock_in_section_layout.addWidget(
             self.register_stock_in_btn
         )
@@ -140,6 +143,7 @@ class InventoryPage(QWidget):
         self.list_stock_out_btn.clicked.connect(
             lambda: self.set_stock_out_section("list")
         )
+        self.stock_out_section_layout.addStretch()
         self.stock_out_section_layout.addWidget(
             self.register_stock_out_btn
         )
@@ -149,33 +153,6 @@ class InventoryPage(QWidget):
         self.stock_out_section_layout.addStretch()
         layout.addLayout(
             self.stock_out_section_layout
-        )
-
-        tools_layout = QHBoxLayout()
-        self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText(
-            "جستجوی نام کالا"
-        )
-        self.search_input.returnPressed.connect(
-            self.refresh_data
-        )
-
-        refresh_btn = QPushButton(
-            "به‌روزرسانی"
-        )
-        refresh_btn.clicked.connect(
-            self.refresh_data
-        )
-
-        tools_layout.addWidget(
-            self.search_input
-        )
-        tools_layout.addWidget(
-            refresh_btn
-        )
-        tools_layout.addStretch()
-        layout.addLayout(
-            tools_layout
         )
 
         self.inventory_table = QTableWidget()
@@ -741,7 +718,7 @@ class InventoryPage(QWidget):
         user = self.main_window.current_user
         self.inventory_rows = inventory_service.list_inventory(
             user,
-            self.search_input.text()
+            ""
         )
 
         self.fill_inventory_table()
