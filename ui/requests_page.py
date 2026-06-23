@@ -20,6 +20,7 @@ from services.request_service import (
     create_request,
     list_requests,
 )
+from ui.widgets.compact_form import wrap_centered_form
 
 
 class RequestsPage(QWidget):
@@ -144,7 +145,9 @@ class RequestsPage(QWidget):
             submit_btn
         )
         layout.addWidget(
-            self.form_group
+            wrap_centered_form(
+                self.form_group
+            )
         )
 
         self.list_group = QGroupBox(

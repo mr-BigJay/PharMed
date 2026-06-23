@@ -64,6 +64,26 @@ QGroupBox::title {
     padding: 0 8px;
 }
 
+#compactForm {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 520px;
+    min-width: 360px;
+}
+
+#compactForm QLineEdit,
+#compactForm QComboBox,
+#compactForm QSpinBox,
+#compactForm QDoubleSpinBox {
+    max-width: 360px;
+    min-width: 240px;
+}
+
+#compactForm QPushButton {
+    max-width: 360px;
+    min-width: 240px;
+}
+
 QTableWidget {
     background: #FFFFFF;
     border: 1px solid #E4ECF7;

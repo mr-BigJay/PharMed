@@ -23,6 +23,7 @@ from services.user_service import (
     list_unit_users,
     set_user_active,
 )
+from ui.widgets.compact_form import wrap_centered_form
 
 
 class UsersPage(QWidget):
@@ -77,7 +78,9 @@ class UsersPage(QWidget):
 
         self.create_user_group = self.build_create_user_group()
         layout.addWidget(
-            self.create_user_group
+            wrap_centered_form(
+                self.create_user_group
+            )
         )
 
         actions_layout = QHBoxLayout()

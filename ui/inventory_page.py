@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 
 from services.format_utils import format_value
 from services import inventory_service
+from ui.widgets.compact_form import wrap_centered_form
 
 
 class InventoryPage(QWidget):
@@ -187,18 +188,20 @@ class InventoryPage(QWidget):
         self.stock_group = self.build_stock_group()
         self.transaction_group = self.build_transaction_group()
 
-        forms_layout = QHBoxLayout()
-        forms_layout.addWidget(
-            self.item_form_group
+        layout.addWidget(
+            wrap_centered_form(
+                self.item_form_group
+            )
         )
-        forms_layout.addWidget(
-            self.stock_group
+        layout.addWidget(
+            wrap_centered_form(
+                self.stock_group
+            )
         )
-        forms_layout.addWidget(
-            self.transaction_group
-        )
-        layout.addLayout(
-            forms_layout
+        layout.addWidget(
+            wrap_centered_form(
+                self.transaction_group
+            )
         )
 
         self.transactions_title = QLabel(
