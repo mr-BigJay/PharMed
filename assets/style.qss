@@ -230,27 +230,36 @@ QScrollArea,
     max-width: 245px;
 }
 
+#sidebarHeader,
 #sidebarNavScroll,
+#sidebarNavViewport,
 #sidebarNavContainer {
-    background: transparent;
+    background: #06356D;
     border: none;
 }
 
 #sidebarNavScroll QScrollBar:vertical {
-    background: transparent;
-    width: 6px;
-    margin: 0;
+    background: #06356D;
+    width: 5px;
+    margin: 0 2px 0 0;
 }
 
 #sidebarNavScroll QScrollBar::handle:vertical {
-    background: rgba(255, 255, 255, 0.28);
-    border-radius: 3px;
-    min-height: 24px;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 2px;
+    min-height: 28px;
 }
 
 #sidebarNavScroll QScrollBar::add-line:vertical,
-#sidebarNavScroll QScrollBar::sub-line:vertical {
+#sidebarNavScroll QScrollBar::sub-line:vertical,
+#sidebarNavScroll QScrollBar::add-page:vertical,
+#sidebarNavScroll QScrollBar::sub-page:vertical {
+    background: #06356D;
     height: 0;
+}
+
+#appSidebar QLabel {
+    background: transparent;
 }
 
 #brandIcon {
@@ -266,11 +275,11 @@ QScrollArea,
 
 #brandTitle {
     color: #FFFFFF;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 900;
-    line-height: 1.8;
-    margin-bottom: 12px;
-    padding: 2px 8px 10px 8px;
+    line-height: 1.9;
+    margin-bottom: 8px;
+    padding: 0 4px 12px 4px;
     qproperty-alignment: AlignCenter;
 }
 

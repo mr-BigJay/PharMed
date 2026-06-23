@@ -323,6 +323,9 @@ class MainWindow(QMainWindow):
         )
 
         header = QWidget()
+        header.setObjectName(
+            "sidebarHeader"
+        )
         header_layout = QVBoxLayout(
             header
         )
@@ -353,6 +356,9 @@ class MainWindow(QMainWindow):
         )
         brand_title.setWordWrap(
             True
+        )
+        brand_title.setMinimumHeight(
+            52
         )
         brand_title.setSizePolicy(
             QSizePolicy.Policy.Preferred,
@@ -436,6 +442,12 @@ class MainWindow(QMainWindow):
         )
         nav_scroll.setHorizontalScrollBarPolicy(
             Qt.ScrollBarAlwaysOff
+        )
+        nav_scroll.setVerticalScrollBarPolicy(
+            Qt.ScrollBarAsNeeded
+        )
+        nav_scroll.viewport().setObjectName(
+            "sidebarNavViewport"
         )
         nav_scroll.setWidget(
             nav_container
