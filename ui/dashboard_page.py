@@ -20,6 +20,7 @@ from services.inventory_service import (
     get_report_data,
     list_recent_transactions,
 )
+from services.format_utils import format_value
 from services.user_service import get_user_capacity
 
 
@@ -125,8 +126,8 @@ class DashboardPage(QWidget):
             )
         )
         date_value = QLabel(
-            datetime.now().strftime(
-                "%Y/%m/%d"
+            format_value(
+                datetime.now().date()
             )
         )
         date_value.setObjectName(
@@ -167,42 +168,42 @@ class DashboardPage(QWidget):
         cards = [
             (
                 "کل اقلام موجود",
-                _format_value(report["total_items"]),
+                format_value(report["total_items"]),
                 "قلم",
                 "metricBlue",
                 "📦",
             ),
             (
                 "موجودی کل انبار",
-                _format_value(report["total_stock"]),
+                format_value(report["total_stock"]),
                 "عدد/واحد",
                 "metricGreen",
                 "🟢",
             ),
             (
-                "ورود امروز",
-                _format_value(self.sum_today_transactions("in")),
+                "ورود این ماه",
+                format_value(self.sum_month_transactions("in")),
                 "قلم",
                 "metricPurple",
                 "⬇",
             ),
             (
-                "خروج امروز",
-                _format_value(self.sum_today_transactions("out")),
+                "خروج این ماه",
+                format_value(self.sum_month_transactions("out")),
                 "قلم",
                 "metricOrange",
                 "⬆",
             ),
             (
                 "اقلام کم موجودی",
-                _format_value(report["low_stock_count"]),
+                format_value(report["low_stock_count"]),
                 "نیاز به پیگیری",
                 "metricRed",
                 "⚠",
             ),
             (
                 "درخواست‌های باز",
-                _format_value(pending_requests),
+                format_value(pending_requests),
                 "در انتظار بررسی",
                 "metricSky",
                 "✉",
@@ -361,7 +362,7 @@ class DashboardPage(QWidget):
             ]
             for column_index, value in enumerate(values):
                 item = QTableWidgetItem(
-                    _format_value(value)
+                    format_value(value)
                 )
                 item.setTextAlignment(
                     Qt.AlignCenter
@@ -426,7 +427,7 @@ class DashboardPage(QWidget):
             self.main_window.current_user
         )
         info = QLabel(
-            f"کاربران واحد: {capacity['registered']} از {capacity['max_users']}"
+            f"کاربران واحد: {format_value(capacity['registered'])} از {format_value(capacity['max_users'])}"
         )
         info.setObjectName(
             "panelInfo"
@@ -513,7 +514,7 @@ class DashboardPage(QWidget):
                     row_index,
                     column_index,
                     QTableWidgetItem(
-                        _format_value(value)
+                        format_value(value)
                     )
                 )
 
@@ -543,13 +544,13 @@ class DashboardPage(QWidget):
 
         rows = [
             ("درخواست‌های باز", self.count_pending_requests()),
-            ("ورود امروز", self.sum_today_transactions("in")),
-            ("خروج امروز", self.sum_today_transactions("out")),
+            ("ورود این ماه", self.sum_month_transactions("in")),
+            ("خروج این ماه", self.sum_month_transactions("out")),
         ]
 
         for label, value in rows:
             row = QLabel(
-                f"{label}: {_format_value(value)}"
+                f"{label}: {format_value(value)}"
             )
             row.setObjectName(
                 "summaryRow"
@@ -588,7 +589,7 @@ class DashboardPage(QWidget):
 
         return query.count()
 
-    def sum_today_transactions(
+    def sum_month_transactions(
         self,
         transaction_type
     ):
@@ -597,28 +598,15 @@ class DashboardPage(QWidget):
 
         for transaction in list_recent_transactions(
             self.main_window.current_user,
-            limit=200
+            limit=500
         ):
+            transaction_date = transaction["date"]
+
             if (
                 transaction["transaction_type"] == transaction_type
-                and transaction["date"] == today
+                and transaction_date.year == today.year
+                and transaction_date.month == today.month
             ):
                 total += transaction["quantity"]
 
         return total
-
-
-def _format_value(value):
-    if value is None:
-        return ""
-
-    if isinstance(value, float):
-        if value.is_integer():
-            return str(
-                int(value)
-            )
-        return f"{value:.2f}"
-
-    return str(
-        value
-    )

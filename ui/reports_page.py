@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from services.format_utils import format_value
 from services.inventory_service import get_report_data
 
 
@@ -120,7 +121,7 @@ class ReportsPage(QWidget):
         self.summary_label.setText(
             " | ".join([
                 f"تعداد اقلام: {report['total_items']}",
-                f"جمع موجودی: {_format_value(report['total_stock'])}",
+                f"جمع موجودی: {format_value(report['total_stock'])}",
                 f"اقلام زیر حداقل: {report['low_stock_count']}",
             ])
         )
@@ -147,7 +148,7 @@ class ReportsPage(QWidget):
 
             for column_index, value in enumerate(values):
                 item = QTableWidgetItem(
-                    _format_value(value)
+                    format_value(value)
                 )
                 if column_index >= 4:
                     item.setTextAlignment(
@@ -161,15 +162,3 @@ class ReportsPage(QWidget):
 
         self.low_stock_table.resizeColumnsToContents()
 
-
-def _format_value(value):
-    if isinstance(value, float):
-        if value.is_integer():
-            return str(
-                int(value)
-            )
-        return f"{value:.2f}"
-
-    return str(
-        value
-    )

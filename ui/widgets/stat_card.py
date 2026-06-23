@@ -1,3 +1,5 @@
+from services.format_utils import format_value
+
 from PySide6.QtCore import Qt
 
 from PySide6.QtWidgets import (
@@ -26,7 +28,7 @@ class StatCard(QFrame):
         layout = QVBoxLayout()
 
         value_label = QLabel(
-            str(value)
+            format_value(value)
         )
 
         value_label.setAlignment(

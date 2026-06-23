@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from services.format_utils import format_value
 from services import inventory_service
 
 
@@ -767,7 +768,7 @@ class InventoryPage(QWidget):
 
             for column_index, value in enumerate(values):
                 item = QTableWidgetItem(
-                    _format_value(value)
+                    format_value(value)
                 )
                 if column_index in (0, 5, 6, 7):
                     item.setTextAlignment(
@@ -855,7 +856,7 @@ class InventoryPage(QWidget):
                     row_index,
                     column_index,
                     QTableWidgetItem(
-                        _format_value(value)
+                        format_value(value)
                     )
                 )
 
@@ -974,17 +975,3 @@ class InventoryPage(QWidget):
             )
 
 
-def _format_value(value):
-    if value is None:
-        return ""
-
-    if isinstance(value, float):
-        if value.is_integer():
-            return str(
-                int(value)
-            )
-        return f"{value:.2f}"
-
-    return str(
-        value
-    )
