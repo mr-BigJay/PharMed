@@ -98,7 +98,7 @@ class RequestsPage(QWidget):
         form = QFormLayout(self.form_group)
 
         self.item_combo = create_searchable_combo(
-            "نام کالا را تایپ کنید..."
+            "جستجو یا انتخاب از لیست..."
         )
         self.item_combo.currentIndexChanged.connect(
             self.update_item_details

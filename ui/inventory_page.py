@@ -479,7 +479,7 @@ class InventoryPage(QWidget):
             self.load_item_name_options
         )
         self.item_name_combo = create_searchable_combo(
-            "نام کالا را تایپ کنید..."
+            "جستجو یا انتخاب از لیست..."
         )
         self.item_name_combo.currentIndexChanged.connect(
             self.update_new_item_field
@@ -594,7 +594,7 @@ class InventoryPage(QWidget):
         form = QFormLayout(group)
 
         self.opening_item_combo = create_searchable_combo(
-            "نام کالا را تایپ کنید..."
+            "جستجو یا انتخاب از لیست..."
         )
         self.opening_quantity_input = create_quantity_input(
             decimals=2
@@ -628,7 +628,7 @@ class InventoryPage(QWidget):
         form = QFormLayout(group)
 
         self.transaction_item_combo = create_searchable_combo(
-            "نام کالا را تایپ کنید..."
+            "جستجو یا انتخاب از لیست..."
         )
         self.transaction_type_combo = configure_plain_combo(
             QComboBox()
