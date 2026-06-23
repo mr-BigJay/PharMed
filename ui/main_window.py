@@ -6,6 +6,8 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QPushButton,
+    QScrollArea,
+    QSizePolicy,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
@@ -304,6 +306,11 @@ class MainWindow(QMainWindow):
         sidebar.setFixedWidth(
             245
         )
+        sidebar.setSizePolicy(
+            QSizePolicy.Policy.Fixed,
+            QSizePolicy.Policy.Expanding
+        )
+
         layout = QVBoxLayout(sidebar)
         layout.setContentsMargins(
             14,
@@ -312,6 +319,20 @@ class MainWindow(QMainWindow):
             18
         )
         layout.setSpacing(
+            8
+        )
+
+        header = QWidget()
+        header_layout = QVBoxLayout(
+            header
+        )
+        header_layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+        header_layout.setSpacing(
             8
         )
 
@@ -333,17 +354,38 @@ class MainWindow(QMainWindow):
         brand_title.setWordWrap(
             True
         )
+        brand_title.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Minimum
+        )
 
-        layout.addWidget(
+        header_layout.addWidget(
             brand_icon,
             alignment=Qt.AlignCenter
         )
-        layout.addWidget(
+        header_layout.addWidget(
             brand_title,
             alignment=Qt.AlignCenter
         )
-        layout.addSpacing(
-            10
+        layout.addWidget(
+            header
+        )
+
+        nav_container = QWidget()
+        nav_container.setObjectName(
+            "sidebarNavContainer"
+        )
+        nav_layout = QVBoxLayout(
+            nav_container
+        )
+        nav_layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+        nav_layout.setSpacing(
+            8
         )
 
         nav_items = [
@@ -370,15 +412,38 @@ class MainWindow(QMainWindow):
                 "navKey",
                 key
             )
+            button.setSizePolicy(
+                QSizePolicy.Policy.Expanding,
+                QSizePolicy.Policy.Fixed
+            )
             button.clicked.connect(
                 callback
             )
             self.nav_buttons[key] = button
-            layout.addWidget(
+            nav_layout.addWidget(
                 button
             )
 
-        layout.addStretch()
+        nav_scroll = QScrollArea()
+        nav_scroll.setObjectName(
+            "sidebarNavScroll"
+        )
+        nav_scroll.setWidgetResizable(
+            True
+        )
+        nav_scroll.setFrameShape(
+            QFrame.NoFrame
+        )
+        nav_scroll.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarAlwaysOff
+        )
+        nav_scroll.setWidget(
+            nav_container
+        )
+        layout.addWidget(
+            nav_scroll,
+            stretch=1
+        )
 
         footer = QLabel(
             f"PharMed {APP_VERSION_LABEL}\n"
@@ -389,6 +454,13 @@ class MainWindow(QMainWindow):
         )
         footer.setAlignment(
             Qt.AlignCenter
+        )
+        footer.setWordWrap(
+            True
+        )
+        footer.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Minimum
         )
         layout.addWidget(
             footer
