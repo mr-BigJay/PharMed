@@ -1,53 +1,136 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QWidget,
+    QFrame,
     QLabel,
     QLineEdit,
+    QMessageBox,
     QPushButton,
     QVBoxLayout,
-    QMessageBox
+    QWidget,
 )
+
 from services.auth_service import (
+    login_user,
     validate_mobile,
-    login_user
 )
 
 
 class LoginWindow(QWidget):
+
     def __init__(self, main_window):
         super().__init__()
+
         self.main_window = main_window
-        layout = QVBoxLayout()
-        layout.setContentsMargins(
-            40,
-            30,
-            40,
-            30
+        self.setLayoutDirection(
+            Qt.RightToLeft
         )
-        layout.setSpacing(15)
-        title = QLabel("PharMed")
-        title.setAlignment(Qt.AlignCenter)
-        font = title.font()
-        font.setPointSize(36)
-        font.setBold(True)
-        title.setFont(font)
-        layout.addWidget(title)
+
+        root_layout = QVBoxLayout()
+        root_layout.setContentsMargins(
+            24,
+            24,
+            24,
+            24
+        )
+        root_layout.setSpacing(
+            0
+        )
+
+        root_layout.addStretch(
+            1
+        )
+
+        login_card = QFrame()
+        login_card.setObjectName(
+            "loginCard"
+        )
+        login_card.setFixedWidth(
+            420
+        )
+        login_card.setMinimumHeight(
+            460
+        )
+        login_card.setMaximumHeight(
+            520
+        )
+
+        card_layout = QVBoxLayout(
+            login_card
+        )
+        card_layout.setContentsMargins(
+            36,
+            32,
+            36,
+            32
+        )
+        card_layout.setSpacing(
+            14
+        )
+
+        card_layout.addStretch(
+            1
+        )
+
+        title = QLabel(
+            "PharMed"
+        )
+        title.setObjectName(
+            "loginTitle"
+        )
+        title.setAlignment(
+            Qt.AlignCenter
+        )
+        card_layout.addWidget(
+            title
+        )
+
         subtitle = QLabel(
             "سامانه مدیریت دارو و تجهیزات پزشکی"
         )
-        subtitle.setAlignment(Qt.AlignCenter)
-        layout.addWidget(subtitle)
+        subtitle.setObjectName(
+            "loginSubtitle"
+        )
+        subtitle.setAlignment(
+            Qt.AlignCenter
+        )
+        subtitle.setWordWrap(
+            True
+        )
+        card_layout.addWidget(
+            subtitle
+        )
+
         description = QLabel(
             "مدیریت موجودی، درخواست‌ها و توزیع دارو و تجهیزات پزشکی"
         )
-        description.setAlignment(Qt.AlignCenter)
-        layout.addWidget(description)
-        layout.addSpacing(20)
+        description.setObjectName(
+            "loginDescription"
+        )
+        description.setAlignment(
+            Qt.AlignCenter
+        )
+        description.setWordWrap(
+            True
+        )
+        card_layout.addWidget(
+            description
+        )
+
+        card_layout.addSpacing(
+            12
+        )
+
         self.mobile = QLineEdit()
         self.mobile.setPlaceholderText(
             "شماره موبایل"
         )
-        layout.addWidget(self.mobile)
+        self.mobile.setObjectName(
+            "loginInput"
+        )
+        card_layout.addWidget(
+            self.mobile
+        )
+
         self.password = QLineEdit()
         self.password.setPlaceholderText(
             "رمز عبور"
@@ -55,33 +138,68 @@ class LoginWindow(QWidget):
         self.password.setEchoMode(
             QLineEdit.Password
         )
-        layout.addWidget(self.password)
+        self.password.setObjectName(
+            "loginInput"
+        )
+        card_layout.addWidget(
+            self.password
+        )
+
         login_btn = QPushButton(
             "ورود"
+        )
+        login_btn.setObjectName(
+            "loginPrimaryButton"
         )
         login_btn.clicked.connect(
             self.login
         )
-        layout.addWidget(login_btn)
+        card_layout.addWidget(
+            login_btn
+        )
+
         register_btn = QPushButton(
             "ثبت نام"
+        )
+        register_btn.setObjectName(
+            "loginSecondaryButton"
         )
         register_btn.clicked.connect(
             self.open_register
         )
-        layout.addWidget(register_btn)
-        layout.addStretch()
+        card_layout.addWidget(
+            register_btn
+        )
+
+        card_layout.addStretch(
+            1
+        )
+
+        root_layout.addWidget(
+            login_card,
+            alignment=Qt.AlignHCenter
+        )
+        root_layout.addStretch(
+            1
+        )
+
         footer = QLabel(
-            "طراحی و توسعه\nصادق جعفری با همکاری علیرضا محمدرضایی"
+            "طراحی و توسعه\n"
+            "صادق جعفری با همکاری علیرضا محمدرضایی"
+        )
+        footer.setObjectName(
+            "loginFooter"
         )
         footer.setAlignment(
             Qt.AlignCenter
         )
-        font = footer.font()
-        font.setPointSize(11)
-        footer.setFont(font)
-        layout.addWidget(footer)
-        self.setLayout(layout)
+        root_layout.addWidget(
+            footer
+        )
+
+        self.setLayout(
+            root_layout
+        )
 
     def open_register(self):
         self.main_window.show_register()
@@ -89,17 +207,22 @@ class LoginWindow(QWidget):
     def login(self):
         mobile = self.mobile.text().strip()
         password = self.password.text()
-        if not validate_mobile(mobile):
+
+        if not validate_mobile(
+            mobile
+        ):
             QMessageBox.warning(
                 self,
                 "خطا",
                 "شماره موبایل معتبر نیست"
             )
             return
+
         user = login_user(
             mobile,
             password
         )
+
         if not user:
             QMessageBox.warning(
                 self,
@@ -107,5 +230,6 @@ class LoginWindow(QWidget):
                 "شماره موبایل یا رمز عبور اشتباه است"
             )
             return
+
         self.main_window.current_user = user
         self.main_window.show_dashboard()

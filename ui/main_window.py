@@ -130,6 +130,9 @@ class MainWindow(QMainWindow):
         shell.setObjectName(
             "appShell"
         )
+        shell.setLayoutDirection(
+            Qt.RightToLeft
+        )
         layout = QHBoxLayout(shell)
         layout.setContentsMargins(
             0,
@@ -161,11 +164,11 @@ class MainWindow(QMainWindow):
         )
 
         layout.addWidget(
-            content_area,
-            stretch=1
+            self.build_sidebar()
         )
         layout.addWidget(
-            self.build_sidebar()
+            content_area,
+            stretch=1
         )
 
         return shell
@@ -174,6 +177,9 @@ class MainWindow(QMainWindow):
         topbar = QFrame()
         topbar.setObjectName(
             "topBar"
+        )
+        topbar.setLayoutDirection(
+            Qt.RightToLeft
         )
         topbar.setFixedHeight(
             72
@@ -237,14 +243,14 @@ class MainWindow(QMainWindow):
         )
 
         layout.addWidget(
-            self.expiry_bell_button
+            avatar
         )
-        layout.addStretch()
         layout.addWidget(
             user_box
         )
+        layout.addStretch()
         layout.addWidget(
-            avatar
+            self.expiry_bell_button
         )
 
         return topbar
@@ -253,6 +259,9 @@ class MainWindow(QMainWindow):
         sidebar = QFrame()
         sidebar.setObjectName(
             "appSidebar"
+        )
+        sidebar.setLayoutDirection(
+            Qt.RightToLeft
         )
         sidebar.setFixedWidth(
             245
