@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -31,6 +31,7 @@ from ui.reports_page import ReportsPage
 from ui.requests_page import RequestsPage
 from ui.settings_page import SettingsPage
 from ui.users_page import UsersPage
+from ui.widgets.datetime_card import DateTimeCard
 from version import APP_VERSION_LABEL
 
 
@@ -107,8 +108,19 @@ class MainWindow(QMainWindow):
         self.user_status_label = QLabel()
         self.user_location_label = QLabel()
         self.expiry_bell_button = QPushButton()
+        self.datetime_card = DateTimeCard()
         self.db = SessionLocal()
         self.app_shell = self.build_app_shell()
+
+        self.datetime_timer = QTimer(
+            self
+        )
+        self.datetime_timer.timeout.connect(
+            self.datetime_card.refresh
+        )
+        self.datetime_timer.start(
+            30000
+        )
 
         self.root_stack.addWidget(
             self.login_page
@@ -182,7 +194,7 @@ class MainWindow(QMainWindow):
             Qt.RightToLeft
         )
         topbar.setFixedHeight(
-            72
+            84
         )
         layout = QHBoxLayout(topbar)
         layout.setContentsMargins(
@@ -242,13 +254,39 @@ class MainWindow(QMainWindow):
             "avatar"
         )
 
-        layout.addWidget(
+        user_section = QWidget()
+        user_section_layout = QHBoxLayout(
+            user_section
+        )
+        user_section_layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+        user_section_layout.setSpacing(
+            12
+        )
+        user_section_layout.addWidget(
             avatar
         )
-        layout.addWidget(
+        user_section_layout.addWidget(
             user_box
         )
-        layout.addStretch()
+
+        layout.addWidget(
+            user_section
+        )
+        layout.addStretch(
+            1
+        )
+        layout.addWidget(
+            self.datetime_card,
+            alignment=Qt.AlignCenter
+        )
+        layout.addStretch(
+            1
+        )
         layout.addWidget(
             self.expiry_bell_button
         )
@@ -477,6 +515,7 @@ class MainWindow(QMainWindow):
         nav_key=None
     ):
         self.update_topbar()
+        self.datetime_card.refresh()
         self.set_active_nav(
             nav_key
         )

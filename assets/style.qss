@@ -284,6 +284,25 @@ QScrollArea,
     border-bottom: 1px solid #E4ECF7;
 }
 
+#topDateTimeCard {
+    background: #FFFFFF;
+    border: 1px solid #E4ECF7;
+    border-radius: 14px;
+    min-width: 190px;
+}
+
+#topClockValue {
+    color: #0B2F66;
+    font-size: 18px;
+    font-weight: 1000;
+}
+
+#topDateValue {
+    color: #526176;
+    font-size: 12px;
+    font-weight: 800;
+}
+
 #topSearch {
     background: #FFFFFF;
     border: 1px solid #D8E3F2;

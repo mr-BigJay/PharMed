@@ -112,49 +112,16 @@ class DashboardPage(QWidget):
             "heroSubtitle"
         )
 
-        date_card = QFrame()
-        date_card.setObjectName(
-            "dateCard"
-        )
-        date_layout = QVBoxLayout(date_card)
-        date_layout.setSpacing(
-            2
-        )
-        date_layout.addWidget(
-            QLabel(
-                "امروز"
-            )
-        )
-        date_value = QLabel(
-            format_value(
-                datetime.now().date()
-            )
-        )
-        date_value.setObjectName(
-            "dateValue"
-        )
-        date_layout.addWidget(
-            date_value
-        )
-
         hero = QFrame()
         hero.setObjectName(
             "heroCard"
         )
-        hero_layout = QHBoxLayout(hero)
-        text_layout = QVBoxLayout()
-        text_layout.addWidget(
+        hero_layout = QVBoxLayout(hero)
+        hero_layout.addWidget(
             title
         )
-        text_layout.addWidget(
-            subtitle
-        )
-        hero_layout.addLayout(
-            text_layout,
-            stretch=1
-        )
         hero_layout.addWidget(
-            date_card
+            subtitle
         )
 
         return hero
