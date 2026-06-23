@@ -2,8 +2,11 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QComboBox,
     QFormLayout,
+    QFrame,
+    QGridLayout,
     QGroupBox,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
     QLineEdit,
     QMessageBox,
@@ -14,11 +17,15 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QVBoxLayout,
     QWidget,
+    QGraphicsBlurEffect,
 )
 
+from services.bootstrap_service import (
+    DRUG_CATEGORY_NAME,
+    MEDICAL_CATEGORY_NAME,
+)
 from services.format_utils import format_value
 from services import inventory_service
-from ui.widgets.compact_form import wrap_centered_form
 from ui.widgets.form_fields import (
     combo_value_by_text,
     configure_plain_combo,
@@ -37,9 +44,10 @@ class InventoryPage(QWidget):
         self.main_window = main_window
         self.inventory_rows = []
         self.current_mode = "items"
-        self.current_item_section = "register"
         self.current_stock_in_section = "register"
         self.current_stock_out_section = "register"
+
+        self.summary_value_labels = {}
 
         self.setup_ui()
 
@@ -70,35 +78,14 @@ class InventoryPage(QWidget):
             alignment=Qt.AlignHCenter
         )
 
-        self.item_section_layout = QHBoxLayout()
-        self.register_items_btn = QPushButton(
-            "ثبت اقلام دارویی و تجهیزات پزشکی"
+        self.items_summary_widget = self.build_items_summary()
+        layout.addWidget(
+            self.items_summary_widget
         )
-        self.register_items_btn.setObjectName(
-            "sectionButton"
-        )
-        self.register_items_btn.clicked.connect(
-            lambda: self.set_item_section("register")
-        )
-        self.list_items_btn = QPushButton(
-            "لیست اقلام دارویی و تجهیزات پزشکی"
-        )
-        self.list_items_btn.setObjectName(
-            "sectionButton"
-        )
-        self.list_items_btn.clicked.connect(
-            lambda: self.set_item_section("list")
-        )
-        self.item_section_layout.addStretch()
-        self.item_section_layout.addWidget(
-            self.register_items_btn
-        )
-        self.item_section_layout.addWidget(
-            self.list_items_btn
-        )
-        self.item_section_layout.addStretch()
-        layout.addLayout(
-            self.item_section_layout
+
+        self.items_toolbar = self.build_items_toolbar()
+        layout.addWidget(
+            self.items_toolbar
         )
 
         self.stock_in_section_layout = QHBoxLayout()
@@ -128,8 +115,13 @@ class InventoryPage(QWidget):
             self.list_stock_in_btn
         )
         self.stock_in_section_layout.addStretch()
-        layout.addLayout(
+
+        self.stock_in_section_widget = QWidget()
+        self.stock_in_section_widget.setLayout(
             self.stock_in_section_layout
+        )
+        layout.addWidget(
+            self.stock_in_section_widget
         )
 
         self.stock_out_section_layout = QHBoxLayout()
@@ -159,8 +151,13 @@ class InventoryPage(QWidget):
             self.list_stock_out_btn
         )
         self.stock_out_section_layout.addStretch()
-        layout.addLayout(
+
+        self.stock_out_section_widget = QWidget()
+        self.stock_out_section_widget.setLayout(
             self.stock_out_section_layout
+        )
+        layout.addWidget(
+            self.stock_out_section_widget
         )
 
         self.inventory_table = QTableWidget()
@@ -187,6 +184,9 @@ class InventoryPage(QWidget):
         self.inventory_table.itemSelectionChanged.connect(
             self.select_current_table_item
         )
+        self._configure_inventory_table(
+            self.inventory_table
+        )
         layout.addWidget(
             self.inventory_table
         )
@@ -196,19 +196,10 @@ class InventoryPage(QWidget):
         self.transaction_group = self.build_transaction_group()
 
         layout.addWidget(
-            wrap_centered_form(
-                self.item_form_group
-            )
+            self.stock_group
         )
         layout.addWidget(
-            wrap_centered_form(
-                self.stock_group
-            )
-        )
-        layout.addWidget(
-            wrap_centered_form(
-                self.transaction_group
-            )
+            self.transaction_group
         )
 
         self.transactions_title = QLabel(
@@ -241,11 +232,14 @@ class InventoryPage(QWidget):
             self.transactions_table
         )
 
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(
             True
         )
-        scroll.setWidget(
+        self.scroll.setFrameShape(
+            QFrame.NoFrame
+        )
+        self.scroll.setWidget(
             content
         )
 
@@ -257,17 +251,367 @@ class InventoryPage(QWidget):
             0
         )
         root_layout.addWidget(
-            scroll
+            self.scroll
         )
         self.setLayout(
             root_layout
         )
+
+        self.build_item_modal()
 
         self.load_categories()
         self.refresh_data()
         self.set_mode(
             "items"
         )
+
+    def build_items_summary(self):
+        widget = QWidget()
+        grid = QGridLayout(widget)
+        grid.setHorizontalSpacing(
+            12
+        )
+        grid.setVerticalSpacing(
+            0
+        )
+        grid.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+
+        cards = [
+            (
+                "total",
+                "کل اقلام",
+                "قلم",
+                "metricBlue",
+                "📦",
+            ),
+            (
+                "drug",
+                "اقلام دارویی",
+                "مورد",
+                "metricGreen",
+                "💊",
+            ),
+            (
+                "equipment",
+                "تجهیزات پزشکی",
+                "مورد",
+                "metricPurple",
+                "🏥",
+            ),
+        ]
+
+        for column_index in range(3):
+            grid.setColumnStretch(
+                column_index,
+                1
+            )
+
+        for index, (key, title, unit, style, icon) in enumerate(cards):
+            card = self.build_summary_card(
+                title,
+                unit,
+                style,
+                icon
+            )
+            self.summary_value_labels[key] = (
+                card.findChild(
+                    QLabel,
+                    "metricValue"
+                )
+            )
+            grid.addWidget(
+                card,
+                0,
+                index
+            )
+
+        return widget
+
+    def build_summary_card(
+        self,
+        title,
+        unit,
+        object_name,
+        icon
+    ):
+        card = QFrame()
+        card.setObjectName(
+            object_name
+        )
+        card.setMinimumHeight(
+            96
+        )
+
+        layout = QHBoxLayout(card)
+        icon_label = QLabel(
+            icon
+        )
+        icon_label.setObjectName(
+            "metricIcon"
+        )
+
+        text_layout = QVBoxLayout()
+        title_label = QLabel(
+            title
+        )
+        title_label.setObjectName(
+            "metricTitle"
+        )
+        value_label = QLabel(
+            format_value(0)
+        )
+        value_label.setObjectName(
+            "metricValue"
+        )
+        unit_label = QLabel(
+            unit
+        )
+        unit_label.setObjectName(
+            "metricSubtitle"
+        )
+
+        text_layout.addWidget(
+            title_label
+        )
+        text_layout.addWidget(
+            value_label
+        )
+        text_layout.addWidget(
+            unit_label
+        )
+
+        layout.addWidget(
+            icon_label
+        )
+        layout.addLayout(
+            text_layout,
+            stretch=1
+        )
+        return card
+
+    def build_items_toolbar(self):
+        widget = QWidget()
+        row = QHBoxLayout(widget)
+        row.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+        row.setSpacing(
+            12
+        )
+
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText(
+            "جستجو در لیست اقلام..."
+        )
+        self.search_input.textChanged.connect(
+            self.refresh_data
+        )
+
+        self.new_item_btn = QPushButton(
+            "ثبت مورد جدید"
+        )
+        self.new_item_btn.setObjectName(
+            "loginPrimaryButton"
+        )
+        self.new_item_btn.setMinimumWidth(
+            160
+        )
+        self.new_item_btn.clicked.connect(
+            self.open_item_modal
+        )
+
+        row.addWidget(
+            self.search_input,
+            stretch=1
+        )
+        row.addWidget(
+            self.new_item_btn
+        )
+        return widget
+
+    def build_item_modal(self):
+        self.modal_overlay = QFrame(
+            self
+        )
+        self.modal_overlay.setObjectName(
+            "modalOverlay"
+        )
+        self.modal_overlay.hide()
+
+        overlay_layout = QVBoxLayout(
+            self.modal_overlay
+        )
+        overlay_layout.setContentsMargins(
+            24,
+            24,
+            24,
+            24
+        )
+        overlay_layout.addStretch(
+            1
+        )
+
+        center_row = QHBoxLayout()
+        center_row.addStretch(
+            1
+        )
+
+        modal_card = QFrame()
+        modal_card.setObjectName(
+            "modalCard"
+        )
+        card_layout = QVBoxLayout(
+            modal_card
+        )
+        card_layout.setContentsMargins(
+            24,
+            24,
+            24,
+            24
+        )
+        card_layout.setSpacing(
+            16
+        )
+
+        modal_title = QLabel(
+            "ثبت اقلام دارویی و تجهیزات پزشکی"
+        )
+        modal_title.setObjectName(
+            "panelTitle"
+        )
+        modal_title.setAlignment(
+            Qt.AlignCenter
+        )
+        card_layout.addWidget(
+            modal_title
+        )
+        card_layout.addWidget(
+            self.item_form_group
+        )
+
+        buttons_row = QHBoxLayout()
+        buttons_row.setSpacing(
+            12
+        )
+        cancel_btn = QPushButton(
+            "بازگشت"
+        )
+        cancel_btn.setObjectName(
+            "sectionButton"
+        )
+        cancel_btn.clicked.connect(
+            self.close_item_modal
+        )
+        submit_btn = QPushButton(
+            "ثبت"
+        )
+        submit_btn.setObjectName(
+            "loginPrimaryButton"
+        )
+        submit_btn.clicked.connect(
+            self.add_item
+        )
+        buttons_row.addWidget(
+            cancel_btn
+        )
+        buttons_row.addWidget(
+            submit_btn
+        )
+        card_layout.addLayout(
+            buttons_row
+        )
+
+        center_row.addWidget(
+            modal_card
+        )
+        center_row.addStretch(
+            1
+        )
+        overlay_layout.addLayout(
+            center_row
+        )
+        overlay_layout.addStretch(
+            1
+        )
+
+    def resizeEvent(
+        self,
+        event
+    ):
+        super().resizeEvent(
+            event
+        )
+        if hasattr(
+            self,
+            "modal_overlay"
+        ):
+            self.modal_overlay.setGeometry(
+                self.rect()
+            )
+
+    def open_item_modal(self):
+        blur = QGraphicsBlurEffect()
+        blur.setBlurRadius(
+            10
+        )
+        self.scroll.setGraphicsEffect(
+            blur
+        )
+        self.modal_overlay.setGeometry(
+            self.rect()
+        )
+        self.modal_overlay.show()
+        self.modal_overlay.raise_()
+
+    def close_item_modal(self):
+        self.scroll.setGraphicsEffect(
+            None
+        )
+        self.modal_overlay.hide()
+
+    def update_items_summary(self):
+        all_rows = inventory_service.list_inventory(
+            self.main_window.current_user,
+            ""
+        )
+        total = len(
+            all_rows
+        )
+        drug_count = sum(
+            1
+            for row in all_rows
+            if row["category_name"] == DRUG_CATEGORY_NAME
+        )
+        equipment_count = sum(
+            1
+            for row in all_rows
+            if row["category_name"] == MEDICAL_CATEGORY_NAME
+        )
+
+        values = {
+            "total": total,
+            "drug": drug_count,
+            "equipment": equipment_count,
+        }
+
+        for key, label in self.summary_value_labels.items():
+            if label:
+                label.setText(
+                    format_value(
+                        values.get(
+                            key,
+                            0
+                        )
+                    )
+                )
 
     def set_mode(
         self,
@@ -334,13 +678,6 @@ class InventoryPage(QWidget):
 
         self.update_mode_visibility()
 
-    def set_item_section(
-        self,
-        section
-    ):
-        self.current_item_section = section
-        self.update_mode_visibility()
-
     def set_stock_in_section(
         self,
         section
@@ -360,32 +697,20 @@ class InventoryPage(QWidget):
         is_stock_in_mode = self.current_mode == "stock_in"
         is_stock_out_mode = self.current_mode == "stock_out"
 
-        self.register_items_btn.setVisible(
+        self.items_summary_widget.setVisible(
             is_items_mode
         )
-        self.list_items_btn.setVisible(
+        self.items_toolbar.setVisible(
             is_items_mode
         )
-        self.register_stock_in_btn.setVisible(
+        self.stock_in_section_widget.setVisible(
             is_stock_in_mode
         )
-        self.list_stock_in_btn.setVisible(
-            is_stock_in_mode
-        )
-        self.register_stock_out_btn.setVisible(
+        self.stock_out_section_widget.setVisible(
             is_stock_out_mode
-        )
-        self.list_stock_out_btn.setVisible(
-            is_stock_out_mode
-        )
-        self.item_form_group.setVisible(
-            is_items_mode and self.current_item_section == "register"
         )
         self.inventory_table.setVisible(
-            (
-                is_items_mode
-                and self.current_item_section == "list"
-            )
+            is_items_mode
             or self.current_mode == "stock"
         )
         self.stock_group.setVisible(
@@ -393,49 +718,35 @@ class InventoryPage(QWidget):
         )
         self.transaction_group.setVisible(
             (
-                (
-                    is_stock_out_mode
-                    and self.current_stock_out_section == "register"
-                )
-                or (
-                    is_stock_in_mode
-                    and self.current_stock_in_section == "register"
-                )
+                is_stock_out_mode
+                and self.current_stock_out_section == "register"
+            )
+            or (
+                is_stock_in_mode
+                and self.current_stock_in_section == "register"
             )
         )
         self.transactions_title.setVisible(
             (
-                (
-                    is_stock_out_mode
-                    and self.current_stock_out_section == "list"
-                )
-                or (
-                    is_stock_in_mode
-                    and self.current_stock_in_section == "list"
-                )
+                is_stock_out_mode
+                and self.current_stock_out_section == "list"
+            )
+            or (
+                is_stock_in_mode
+                and self.current_stock_in_section == "list"
             )
         )
         self.transactions_table.setVisible(
             (
-                (
-                    is_stock_out_mode
-                    and self.current_stock_out_section == "list"
-                )
-                or (
-                    is_stock_in_mode
-                    and self.current_stock_in_section == "list"
-                )
+                is_stock_out_mode
+                and self.current_stock_out_section == "list"
+            )
+            or (
+                is_stock_in_mode
+                and self.current_stock_in_section == "list"
             )
         )
 
-        self.register_items_btn.setProperty(
-            "active",
-            self.current_item_section == "register"
-        )
-        self.list_items_btn.setProperty(
-            "active",
-            self.current_item_section == "list"
-        )
         self.register_stock_in_btn.setProperty(
             "active",
             self.current_stock_in_section == "register"
@@ -453,12 +764,10 @@ class InventoryPage(QWidget):
             self.current_stock_out_section == "list"
         )
         for button in (
-            self.register_items_btn,
-            self.list_items_btn,
             self.register_stock_in_btn,
             self.list_stock_in_btn,
             self.register_stock_out_btn,
-            self.list_stock_out_btn
+            self.list_stock_out_btn,
         ):
             button.style().unpolish(
                 button
@@ -468,8 +777,9 @@ class InventoryPage(QWidget):
             )
 
     def build_item_group(self):
-        group = QGroupBox(
-            "ثبت کالای جدید"
+        group = QGroupBox()
+        group.setObjectName(
+            "modalFormGroup"
         )
         form = QFormLayout(group)
 
@@ -543,13 +853,6 @@ class InventoryPage(QWidget):
             1000000
         )
 
-        add_btn = QPushButton(
-            "ثبت کالا"
-        )
-        add_btn.clicked.connect(
-            self.add_item
-        )
-
         form.addRow(
             "دسته:",
             self.category_combo
@@ -576,9 +879,6 @@ class InventoryPage(QWidget):
         )
         form.addRow(
             helper
-        )
-        form.addRow(
-            add_btn
         )
 
         return group
@@ -734,11 +1034,20 @@ class InventoryPage(QWidget):
 
     def refresh_data(self):
         user = self.main_window.current_user
+        search_text = ""
+
+        if hasattr(
+            self,
+            "search_input"
+        ):
+            search_text = self.search_input.text()
+
         self.inventory_rows = inventory_service.list_inventory(
             user,
-            ""
+            search_text
         )
 
+        self.update_items_summary()
         self.fill_inventory_table()
         self.fill_item_combos()
         self.fill_transactions_table()
@@ -775,7 +1084,23 @@ class InventoryPage(QWidget):
                     item
                 )
 
-        self.inventory_table.resizeColumnsToContents()
+    def _configure_inventory_table(
+        self,
+        table
+    ):
+        table.verticalHeader().setVisible(
+            False
+        )
+        header = table.horizontalHeader()
+        header.setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        header.setDefaultAlignment(
+            Qt.AlignCenter
+        )
+        header.setStretchLastSection(
+            True
+        )
 
     def fill_item_combos(self):
         self.opening_item_combo.clear()
@@ -900,9 +1225,7 @@ class InventoryPage(QWidget):
                 0
             )
             self.refresh_data()
-            self.set_item_section(
-                "list"
-            )
+            self.close_item_modal()
 
     def save_opening_stock(self):
         item_id = combo_value_by_text(
@@ -984,5 +1307,3 @@ class InventoryPage(QWidget):
                 "خطا",
                 message
             )
-
-

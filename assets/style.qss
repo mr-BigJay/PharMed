@@ -618,3 +618,21 @@ QScrollArea,
     border: 1px solid #147BFF;
     color: #FFFFFF;
 }
+
+#modalOverlay {
+    background: rgba(15, 23, 42, 0.42);
+}
+
+#modalCard {
+    background: #FFFFFF;
+    border: 1px solid #E4ECF7;
+    border-radius: 20px;
+    max-width: 560px;
+    min-width: 420px;
+}
+
+#modalFormGroup {
+    border: none;
+    margin-top: 0;
+    padding: 0;
+}
