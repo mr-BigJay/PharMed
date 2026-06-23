@@ -193,6 +193,28 @@ QScrollArea,
     font-weight: 800;
 }
 
+#topUserLocation {
+    color: #147BFF;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+#expiryBellButton {
+    background: #FFF5E8;
+    border: 1px solid #FFE1B5;
+    border-radius: 12px;
+    color: #0B2F66;
+    font-size: 16px;
+    font-weight: 900;
+    min-height: 42px;
+    min-width: 56px;
+    padding: 6px 12px;
+}
+
+#expiryBellButton:hover {
+    background: #FFE1B5;
+}
+
 #heroCard {
     min-height: 84px;
 }

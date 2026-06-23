@@ -3,8 +3,8 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
-    QLineEdit,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QStackedWidget,
     QVBoxLayout,
@@ -12,6 +12,15 @@ from PySide6.QtWidgets import (
 )
 
 from db import init_db
+
+from models.center import Center
+from models.health_house import HealthHouse
+from services.db_session import SessionLocal
+from services.expiry_service import (
+    get_expiring_medicines,
+    get_expiry_alert_count,
+)
+from services.format_utils import format_value
 
 from ui.dashboard_page import DashboardPage
 from ui.equipment_page import EquipmentPage
@@ -95,6 +104,9 @@ class MainWindow(QMainWindow):
         self.nav_buttons = {}
         self.user_name_label = QLabel()
         self.user_status_label = QLabel()
+        self.user_location_label = QLabel()
+        self.expiry_bell_button = QPushButton()
+        self.db = SessionLocal()
         self.app_shell = self.build_app_shell()
 
         self.root_stack.addWidget(
@@ -176,41 +188,14 @@ class MainWindow(QMainWindow):
             16
         )
 
-        menu_icon = QLabel(
-            "☰"
+        self.expiry_bell_button.setObjectName(
+            "expiryBellButton"
         )
-        menu_icon.setObjectName(
-            "topIcon"
+        self.expiry_bell_button.setCursor(
+            Qt.PointingHandCursor
         )
-
-        search_box = QLineEdit()
-        search_box.setObjectName(
-            "topSearch"
-        )
-        search_box.setPlaceholderText(
-            "جستجو در داروها، اقلام و درخواست‌ها..."
-        )
-        search_box.setMaximumWidth(
-            520
-        )
-
-        notif = QLabel(
-            "🔔  5"
-        )
-        notif.setObjectName(
-            "topBadge"
-        )
-        messages = QLabel(
-            "✉  2"
-        )
-        messages.setObjectName(
-            "topBadge"
-        )
-        settings = QLabel(
-            "⚙"
-        )
-        settings.setObjectName(
-            "topIcon"
+        self.expiry_bell_button.clicked.connect(
+            self.show_expiry_alerts
         )
 
         user_box = QWidget()
@@ -230,11 +215,17 @@ class MainWindow(QMainWindow):
         self.user_status_label.setObjectName(
             "topUserStatus"
         )
+        self.user_location_label.setObjectName(
+            "topUserLocation"
+        )
         user_layout.addWidget(
             self.user_name_label
         )
         user_layout.addWidget(
             self.user_status_label
+        )
+        user_layout.addWidget(
+            self.user_location_label
         )
 
         avatar = QLabel(
@@ -245,22 +236,9 @@ class MainWindow(QMainWindow):
         )
 
         layout.addWidget(
-            menu_icon
+            self.expiry_bell_button
         )
         layout.addStretch()
-        layout.addWidget(
-            search_box
-        )
-        layout.addStretch()
-        layout.addWidget(
-            settings
-        )
-        layout.addWidget(
-            messages
-        )
-        layout.addWidget(
-            notif
-        )
         layout.addWidget(
             user_box
         )
@@ -366,25 +344,107 @@ class MainWindow(QMainWindow):
         return sidebar
 
     def update_topbar(self):
-        if self.current_user:
+        user = self.current_user
+
+        if user:
             self.user_name_label.setText(
-                self.current_user.full_name
-            )
-            status = (
-                "مدیر واحد • آنلاین"
-                if self.current_user.is_manager
-                else "کاربر واحد • آنلاین"
+                user.full_name
             )
             self.user_status_label.setText(
-                status
+                "مدیر واحد"
+                if user.is_manager
+                else "کاربر"
+            )
+            self.user_location_label.setText(
+                self._get_user_location_text(user)
             )
         else:
             self.user_name_label.setText(
                 "کاربر"
             )
             self.user_status_label.setText(
-                "آفلاین"
+                ""
             )
+            self.user_location_label.setText(
+                ""
+            )
+
+        self._update_expiry_bell()
+
+    def _get_user_location_text(self, user) -> str:
+        if user.health_house_id:
+            house = (
+                self.db.query(HealthHouse)
+                .filter(
+                    HealthHouse.id == user.health_house_id
+                )
+                .first()
+            )
+            if house:
+                return f"خانه بهداشت: {house.name}"
+
+        if user.center_id:
+            center = (
+                self.db.query(Center)
+                .filter(
+                    Center.id == user.center_id
+                )
+                .first()
+            )
+            if center:
+                return f"مرکز درمانی: {center.name}"
+
+        return ""
+
+    def _update_expiry_bell(self):
+        count = get_expiry_alert_count(
+            self.db,
+            self.current_user
+        )
+
+        if count > 0:
+            self.expiry_bell_button.setText(
+                f"🔔 {format_value(count)}"
+            )
+            self.expiry_bell_button.setToolTip(
+                f"{format_value(count)} داروی منقضی یا نزدیک به انقضا"
+            )
+        else:
+            self.expiry_bell_button.setText(
+                "🔔"
+            )
+            self.expiry_bell_button.setToolTip(
+                "هیچ داروی منقضی یا نزدیک به انقضا وجود ندارد"
+            )
+
+    def show_expiry_alerts(self):
+        medicines = get_expiring_medicines(
+            self.db,
+            self.current_user
+        )
+
+        if not medicines:
+            QMessageBox.information(
+                self,
+                "هشدار انقضای دارو",
+                "هیچ داروی منقضی شده یا نزدیک به انقضایی یافت نشد.",
+            )
+            return
+
+        lines = []
+        for medicine in medicines:
+            lines.append(
+                f"• {medicine['item_name']} "
+                f"(بچ: {medicine['batch_number']}) — "
+                f"{medicine['status_label']} — "
+                f"انقضا: {format_value(medicine['expiry_date'])}"
+            )
+
+        QMessageBox.warning(
+            self,
+            "هشدار انقضای دارو",
+            "\n".join(lines),
+        )
 
     def show_login(self):
         self.root_stack.setCurrentWidget(
