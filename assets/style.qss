@@ -403,12 +403,12 @@ QScrollArea,
 }
 
 #heroCard {
-    min-height: 84px;
+    min-height: 230px;
 }
 
 #heroTitle {
     color: #0B2F66;
-    font-size: 23px;
+    font-size: 22px;
     font-weight: 1000;
 }
 
@@ -512,8 +512,12 @@ QScrollArea,
 #quickPurple,
 #quickGray {
     border-radius: 16px;
-    min-height: 62px;
+    font-size: 13px;
     font-weight: 900;
+    min-height: 58px;
+    max-height: 58px;
+    min-width: 0;
+    padding: 6px 8px;
 }
 
 #quickGreen {

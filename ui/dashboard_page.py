@@ -5,9 +5,11 @@ from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -50,6 +52,10 @@ class DashboardPage(QWidget):
         content.setObjectName(
             "pageCanvas"
         )
+        content.setLayoutDirection(
+            Qt.RightToLeft
+        )
+
         layout = QVBoxLayout(content)
         layout.setContentsMargins(
             22,
@@ -61,14 +67,11 @@ class DashboardPage(QWidget):
             16
         )
 
-        layout.addWidget(
-            self.build_welcome_bar()
+        layout.addLayout(
+            self.build_top_row()
         )
         layout.addLayout(
             self.build_metrics_grid()
-        )
-        layout.addLayout(
-            self.build_middle_grid()
         )
         layout.addLayout(
             self.build_bottom_grid()
@@ -92,6 +95,21 @@ class DashboardPage(QWidget):
             root_layout
         )
 
+    def build_top_row(self):
+        row = QHBoxLayout()
+        row.setSpacing(
+            14
+        )
+        row.addWidget(
+            self.build_welcome_bar(),
+            stretch=1
+        )
+        row.addWidget(
+            self.build_quick_actions_panel(),
+            stretch=1
+        )
+        return row
+
     def build_welcome_bar(self):
         user = self.main_window.current_user
         name = (
@@ -99,29 +117,54 @@ class DashboardPage(QWidget):
             if user
             else "کاربر"
         )
+
+        hero = QFrame()
+        hero.setObjectName(
+            "heroCard"
+        )
+        hero.setMinimumHeight(
+            230
+        )
+
+        hero_layout = QVBoxLayout(hero)
+        hero_layout.setContentsMargins(
+            20,
+            20,
+            20,
+            20
+        )
+        hero_layout.setSpacing(
+            8
+        )
+
         title = QLabel(
             f"👋 خوش آمدید، {name}"
         )
         title.setObjectName(
             "heroTitle"
         )
+        title.setWordWrap(
+            True
+        )
+
         subtitle = QLabel(
             "نمای کلی وضعیت انبار، موجودی‌ها و درخواست‌های واحد شما"
         )
         subtitle.setObjectName(
             "heroSubtitle"
         )
-
-        hero = QFrame()
-        hero.setObjectName(
-            "heroCard"
+        subtitle.setWordWrap(
+            True
         )
-        hero_layout = QVBoxLayout(hero)
+
         hero_layout.addWidget(
             title
         )
         hero_layout.addWidget(
             subtitle
+        )
+        hero_layout.addStretch(
+            1
         )
 
         return hero
@@ -258,7 +301,7 @@ class DashboardPage(QWidget):
 
         return card
 
-    def build_middle_grid(self):
+    def build_bottom_grid(self):
         report = get_report_data(
             self.main_window.current_user
         )
@@ -274,10 +317,9 @@ class DashboardPage(QWidget):
             stretch=1
         )
         grid.addWidget(
-            self.build_quick_actions_panel(),
-            stretch=1
+            self.build_transactions_panel(),
+            stretch=2
         )
-
         return grid
 
     def build_low_stock_panel(
@@ -319,6 +361,9 @@ class DashboardPage(QWidget):
                 5
             )
         )
+        self._configure_table(
+            table
+        )
 
         for row_index, row in enumerate(rows[:5]):
             values = [
@@ -340,7 +385,6 @@ class DashboardPage(QWidget):
                     item
                 )
 
-        table.resizeColumnsToContents()
         layout.addWidget(
             table
         )
@@ -352,7 +396,20 @@ class DashboardPage(QWidget):
         panel.setObjectName(
             "panelCard"
         )
+        panel.setMinimumHeight(
+            230
+        )
+
         layout = QVBoxLayout(panel)
+        layout.setContentsMargins(
+            16,
+            16,
+            16,
+            16
+        )
+        layout.setSpacing(
+            12
+        )
 
         title = QLabel(
             "عملیات سریع"
@@ -365,6 +422,19 @@ class DashboardPage(QWidget):
         )
 
         grid = QGridLayout()
+        grid.setHorizontalSpacing(
+            10
+        )
+        grid.setVerticalSpacing(
+            10
+        )
+
+        for column in range(3):
+            grid.setColumnStretch(
+                column,
+                1
+            )
+
         actions = [
             ("⬇ ورود کالا", self.main_window.show_stock_in, "quickGreen"),
             ("⬆ خروج کالا", self.main_window.show_stock_out, "quickRed"),
@@ -374,12 +444,22 @@ class DashboardPage(QWidget):
             ("👥 کاربران", self.main_window.show_users, "quickGray"),
         ]
 
-        for index, (title, callback, object_name) in enumerate(actions):
+        for index, (label, callback, object_name) in enumerate(actions):
             button = QPushButton(
-                title
+                label
             )
             button.setObjectName(
                 object_name
+            )
+            button.setSizePolicy(
+                QSizePolicy.Policy.Expanding,
+                QSizePolicy.Policy.Fixed
+            )
+            button.setMinimumHeight(
+                58
+            )
+            button.setMaximumHeight(
+                58
             )
             button.clicked.connect(
                 callback
@@ -390,11 +470,16 @@ class DashboardPage(QWidget):
                 index % 3
             )
 
+        layout.addLayout(
+            grid
+        )
+
         capacity = get_user_capacity(
             self.main_window.current_user
         )
         info = QLabel(
-            f"کاربران واحد: {format_value(capacity['registered'])} از {format_value(capacity['max_users'])}"
+            f"کاربران واحد: {format_value(capacity['registered'])} "
+            f"از {format_value(capacity['max_users'])}"
         )
         info.setObjectName(
             "panelInfo"
@@ -402,31 +487,11 @@ class DashboardPage(QWidget):
         info.setAlignment(
             Qt.AlignCenter
         )
-
-        layout.addLayout(
-            grid
-        )
         layout.addWidget(
             info
         )
 
         return panel
-
-    def build_bottom_grid(self):
-        grid = QHBoxLayout()
-        grid.setSpacing(
-            14
-        )
-        grid.addWidget(
-            self.build_transactions_panel(),
-            stretch=2
-        )
-        grid.addWidget(
-            self.build_summary_panel(),
-            stretch=1
-        )
-
-        return grid
 
     def build_transactions_panel(self):
         transactions = list_recent_transactions(
@@ -467,6 +532,9 @@ class DashboardPage(QWidget):
         table.setRowCount(
             len(transactions)
         )
+        self._configure_table(
+            table
+        )
 
         for row_index, transaction in enumerate(transactions):
             values = [
@@ -477,58 +545,48 @@ class DashboardPage(QWidget):
                 transaction["description"],
             ]
             for column_index, value in enumerate(values):
+                item = QTableWidgetItem(
+                    format_value(value)
+                )
+                item.setTextAlignment(
+                    Qt.AlignCenter
+                )
                 table.setItem(
                     row_index,
                     column_index,
-                    QTableWidgetItem(
-                        format_value(value)
-                    )
+                    item
                 )
 
-        table.resizeColumnsToContents()
         layout.addWidget(
             table
         )
 
         return panel
 
-    def build_summary_panel(self):
-        panel = QFrame()
-        panel.setObjectName(
-            "panelCard"
+    def _configure_table(
+        self,
+        table
+    ):
+        table.verticalHeader().setVisible(
+            False
         )
-        layout = QVBoxLayout(panel)
-
-        title = QLabel(
-            "خلاصه وضعیت"
+        table.setAlternatingRowColors(
+            True
         )
-        title.setObjectName(
-            "panelTitle"
-        )
-        layout.addWidget(
-            title
+        table.setMinimumHeight(
+            190
         )
 
-        rows = [
-            ("درخواست‌های باز", self.count_pending_requests()),
-            ("ورود این ماه", self.sum_month_transactions("in")),
-            ("خروج این ماه", self.sum_month_transactions("out")),
-        ]
-
-        for label, value in rows:
-            row = QLabel(
-                f"{label}: {format_value(value)}"
-            )
-            row.setObjectName(
-                "summaryRow"
-            )
-            layout.addWidget(
-                row
-            )
-
-        layout.addStretch()
-
-        return panel
+        header = table.horizontalHeader()
+        header.setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        header.setDefaultAlignment(
+            Qt.AlignCenter
+        )
+        header.setStretchLastSection(
+            True
+        )
 
     def count_pending_requests(self):
         user = self.main_window.current_user
