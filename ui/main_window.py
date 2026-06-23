@@ -31,6 +31,7 @@ from ui.reports_page import ReportsPage
 from ui.requests_page import RequestsPage
 from ui.settings_page import SettingsPage
 from ui.users_page import UsersPage
+from version import APP_VERSION_LABEL
 
 
 class MainWindow(QMainWindow):
@@ -329,7 +330,8 @@ class MainWindow(QMainWindow):
         layout.addStretch()
 
         footer = QLabel(
-            "PharMed v0.1\nشبکه بهداشت و درمان شهرستان"
+            f"PharMed {APP_VERSION_LABEL}\n"
+            "شبکه بهداشت و درمان شهرستان"
         )
         footer.setObjectName(
             "sidebarFooter"

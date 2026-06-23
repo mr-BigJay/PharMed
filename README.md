@@ -65,3 +65,23 @@ When building an installer with PyInstaller, bundle both resource folders:
 ```bash
 pyinstaller --add-data "assets:assets" --add-data "data:data" main.py
 ```
+
+## In-app updates
+
+The app can check GitHub for a newer release from **Settings > بررسی به‌روزرسانی**.
+
+How it works:
+
+- **Installed `.exe` version:** downloads the latest release installer from GitHub
+  Releases and runs it.
+- **Source install (`python3 main.py`):** runs `git pull origin main` when Git is
+  available.
+
+To publish an update:
+
+1. Bump `APP_VERSION` and `APP_VERSION_LABEL` in `version.py`.
+2. Build the new installer, for example `PharMed_v0.2.0_x64_Setup.exe`.
+3. Create a GitHub Release with tag `v0.2.0`.
+4. Upload the installer file to that release.
+
+Users can then open Settings and click **بررسی به‌روزرسانی**.
