@@ -1,7 +1,5 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QComboBox,
-    QDoubleSpinBox,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
@@ -21,6 +19,11 @@ from services.request_service import (
     list_requests,
 )
 from ui.widgets.compact_form import wrap_centered_form
+from ui.widgets.form_fields import (
+    combo_value_by_text,
+    create_quantity_input,
+    create_searchable_combo,
+)
 
 
 class RequestsPage(QWidget):
@@ -94,9 +97,14 @@ class RequestsPage(QWidget):
         )
         form = QFormLayout(self.form_group)
 
-        self.item_combo = QComboBox()
+        self.item_combo = create_searchable_combo(
+            "نام کالا را تایپ کنید..."
+        )
         self.item_combo.currentIndexChanged.connect(
             self.update_item_details
+        )
+        self.item_combo.lineEdit().textEdited.connect(
+            lambda _text: self.update_item_details()
         )
         self.form_value_label = QLabel(
             "-"
@@ -110,12 +118,8 @@ class RequestsPage(QWidget):
         self.unit_value_label.setObjectName(
             "summaryRow"
         )
-        self.quantity_input = QDoubleSpinBox()
-        self.quantity_input.setMaximum(
-            100000000
-        )
-        self.quantity_input.setDecimals(
-            2
+        self.quantity_input = create_quantity_input(
+            decimals=2
         )
 
         submit_btn = QPushButton(
@@ -242,7 +246,9 @@ class RequestsPage(QWidget):
         self.fill_table()
 
     def load_items(self):
-        current_item_id = self.item_combo.currentData()
+        current_item_id = combo_value_by_text(
+            self.item_combo
+        )
         self.item_combo.clear()
         self.inventory_rows = list_inventory(
             self.main_window.current_user
@@ -270,7 +276,9 @@ class RequestsPage(QWidget):
         self.update_item_details()
 
     def update_item_details(self):
-        item_id = self.item_combo.currentData()
+        item_id = combo_value_by_text(
+            self.item_combo
+        )
         selected_row = next(
             (
                 row
@@ -330,9 +338,19 @@ class RequestsPage(QWidget):
         self.table.resizeColumnsToContents()
 
     def submit_request(self):
+        item_id = combo_value_by_text(
+            self.item_combo
+        )
+        if item_id is None:
+            self.show_result(
+                False,
+                "کالای انتخاب‌شده معتبر نیست"
+            )
+            return
+
         success, message = create_request(
             user=self.main_window.current_user,
-            item_id=self.item_combo.currentData(),
+            item_id=item_id,
             quantity=self.quantity_input.value(),
             description=""
         )

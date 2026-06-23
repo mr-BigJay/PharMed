@@ -1,7 +1,6 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QComboBox,
-    QDoubleSpinBox,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
@@ -20,6 +19,13 @@ from PySide6.QtWidgets import (
 from services.format_utils import format_value
 from services import inventory_service
 from ui.widgets.compact_form import wrap_centered_form
+from ui.widgets.form_fields import (
+    combo_value_by_text,
+    configure_plain_combo,
+    configure_quantity_input,
+    create_quantity_input,
+    create_searchable_combo,
+)
 
 
 class InventoryPage(QWidget):
@@ -466,13 +472,14 @@ class InventoryPage(QWidget):
         )
         form = QFormLayout(group)
 
-        self.category_combo = QComboBox()
+        self.category_combo = configure_plain_combo(
+            QComboBox()
+        )
         self.category_combo.currentIndexChanged.connect(
             self.load_item_name_options
         )
-        self.item_name_combo = QComboBox()
-        self.item_name_combo.setPlaceholderText(
-            "انتخاب نام قلم"
+        self.item_name_combo = create_searchable_combo(
+            "نام کالا را تایپ کنید..."
         )
         self.item_name_combo.currentIndexChanged.connect(
             self.update_new_item_field
@@ -481,7 +488,9 @@ class InventoryPage(QWidget):
         self.new_item_name_input.setPlaceholderText(
             "نام عنوان جدید"
         )
-        self.item_form_combo = QComboBox()
+        self.item_form_combo = configure_plain_combo(
+            QComboBox()
+        )
         self.item_form_combo.addItems([
             "بدون فرم",
             "قرص",
@@ -501,7 +510,9 @@ class InventoryPage(QWidget):
             "دستکش",
             "سرنگ",
         ])
-        self.unit_combo = QComboBox()
+        self.unit_combo = configure_plain_combo(
+            QComboBox()
+        )
         self.unit_combo.addItems([
             "عدد",
             "بسته",
@@ -524,7 +535,9 @@ class InventoryPage(QWidget):
         helper.setWordWrap(
             True
         )
-        self.minimum_stock_input = QSpinBox()
+        self.minimum_stock_input = configure_quantity_input(
+            QSpinBox()
+        )
         self.minimum_stock_input.setMaximum(
             1000000
         )
@@ -580,13 +593,11 @@ class InventoryPage(QWidget):
         )
         form = QFormLayout(group)
 
-        self.opening_item_combo = QComboBox()
-        self.opening_quantity_input = QDoubleSpinBox()
-        self.opening_quantity_input.setMaximum(
-            100000000
+        self.opening_item_combo = create_searchable_combo(
+            "نام کالا را تایپ کنید..."
         )
-        self.opening_quantity_input.setDecimals(
-            2
+        self.opening_quantity_input = create_quantity_input(
+            decimals=2
         )
 
         save_btn = QPushButton(
@@ -616,8 +627,12 @@ class InventoryPage(QWidget):
         )
         form = QFormLayout(group)
 
-        self.transaction_item_combo = QComboBox()
-        self.transaction_type_combo = QComboBox()
+        self.transaction_item_combo = create_searchable_combo(
+            "نام کالا را تایپ کنید..."
+        )
+        self.transaction_type_combo = configure_plain_combo(
+            QComboBox()
+        )
         self.transaction_type_combo.addItem(
             "ورود",
             inventory_service.TRANSACTION_IN
@@ -626,12 +641,8 @@ class InventoryPage(QWidget):
             "خروج",
             inventory_service.TRANSACTION_OUT
         )
-        self.transaction_quantity_input = QDoubleSpinBox()
-        self.transaction_quantity_input.setMaximum(
-            100000000
-        )
-        self.transaction_quantity_input.setDecimals(
-            2
+        self.transaction_quantity_input = create_quantity_input(
+            decimals=2
         )
         self.batch_input = QLineEdit()
         self.batch_input.setPlaceholderText(
@@ -763,7 +774,9 @@ class InventoryPage(QWidget):
         self.inventory_table.resizeColumnsToContents()
 
     def fill_item_combos(self):
-        current_item_id = self.transaction_item_combo.currentData()
+        current_item_id = combo_value_by_text(
+            self.transaction_item_combo
+        )
 
         self.opening_item_combo.clear()
         self.transaction_item_combo.clear()
@@ -897,9 +910,19 @@ class InventoryPage(QWidget):
             )
 
     def save_opening_stock(self):
+        item_id = combo_value_by_text(
+            self.opening_item_combo
+        )
+        if item_id is None:
+            self.show_result(
+                False,
+                "کالای انتخاب‌شده معتبر نیست"
+            )
+            return
+
         success, message = inventory_service.set_opening_stock(
             user=self.main_window.current_user,
-            item_id=self.opening_item_combo.currentData(),
+            item_id=item_id,
             quantity=self.opening_quantity_input.value()
         )
 
@@ -912,9 +935,19 @@ class InventoryPage(QWidget):
             self.refresh_data()
 
     def save_transaction(self):
+        item_id = combo_value_by_text(
+            self.transaction_item_combo
+        )
+        if item_id is None:
+            self.show_result(
+                False,
+                "کالای انتخاب‌شده معتبر نیست"
+            )
+            return
+
         success, message = inventory_service.create_transaction(
             user=self.main_window.current_user,
-            item_id=self.transaction_item_combo.currentData(),
+            item_id=item_id,
             transaction_type=self.transaction_type_combo.currentData(),
             quantity=self.transaction_quantity_input.value(),
             batch_number=self.batch_input.text(),
