@@ -23,6 +23,7 @@ from ui.widgets.form_fields import (
     combo_value_by_text,
     create_quantity_input,
     create_searchable_combo,
+    reset_combo_selection,
 )
 
 
@@ -246,9 +247,6 @@ class RequestsPage(QWidget):
         self.fill_table()
 
     def load_items(self):
-        current_item_id = combo_value_by_text(
-            self.item_combo
-        )
         self.item_combo.clear()
         self.inventory_rows = list_inventory(
             self.main_window.current_user
@@ -264,15 +262,9 @@ class RequestsPage(QWidget):
                 row["item_id"]
             )
 
-        if current_item_id:
-            index = self.item_combo.findData(
-                current_item_id
-            )
-            if index >= 0:
-                self.item_combo.setCurrentIndex(
-                    index
-                )
-
+        reset_combo_selection(
+            self.item_combo
+        )
         self.update_item_details()
 
     def update_item_details(self):

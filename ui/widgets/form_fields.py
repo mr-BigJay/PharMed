@@ -164,6 +164,33 @@ def create_quantity_input(
     )
 
 
+def reset_combo_selection(
+    combo
+):
+    combo.blockSignals(
+        True
+    )
+    combo.setCurrentIndex(
+        -1
+    )
+
+    line_edit = combo.lineEdit()
+    if line_edit:
+        line_edit.clear()
+
+    combo.blockSignals(
+        False
+    )
+
+    if isinstance(
+        combo,
+        SearchableComboBox
+    ):
+        combo._apply_filter(
+            ""
+        )
+
+
 def combo_value_by_text(
     combo
 ):

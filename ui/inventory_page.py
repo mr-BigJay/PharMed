@@ -25,6 +25,7 @@ from ui.widgets.form_fields import (
     configure_quantity_input,
     create_quantity_input,
     create_searchable_combo,
+    reset_combo_selection,
 )
 
 
@@ -726,6 +727,9 @@ class InventoryPage(QWidget):
             "➕ افزودن عنوان جدید",
             "__new__"
         )
+        reset_combo_selection(
+            self.item_name_combo
+        )
         self.update_new_item_field()
 
     def refresh_data(self):
@@ -774,10 +778,6 @@ class InventoryPage(QWidget):
         self.inventory_table.resizeColumnsToContents()
 
     def fill_item_combos(self):
-        current_item_id = combo_value_by_text(
-            self.transaction_item_combo
-        )
-
         self.opening_item_combo.clear()
         self.transaction_item_combo.clear()
 
@@ -795,17 +795,12 @@ class InventoryPage(QWidget):
                 row["item_id"]
             )
 
-        if current_item_id:
-            index = self.transaction_item_combo.findData(
-                current_item_id
-            )
-            if index >= 0:
-                self.transaction_item_combo.setCurrentIndex(
-                    index
-                )
-                self.opening_item_combo.setCurrentIndex(
-                    index
-                )
+        reset_combo_selection(
+            self.opening_item_combo
+        )
+        reset_combo_selection(
+            self.transaction_item_combo
+        )
 
     def fill_transactions_table(self):
         transactions = inventory_service.list_recent_transactions(
@@ -967,6 +962,9 @@ class InventoryPage(QWidget):
             self.batch_input.clear()
             self.expiry_input.clear()
             self.description_input.clear()
+            reset_combo_selection(
+                self.transaction_item_combo
+            )
             self.refresh_data()
 
     def show_result(
