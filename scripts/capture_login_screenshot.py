@@ -32,7 +32,7 @@ def main():
     from ui.login_window import LoginWindow
 
     login = LoginWindow(MockMainWindow())
-    login.resize(1100, 720)
+    login.resize(1280, 720)
     login.show()
 
     output_path = os.environ.get(
