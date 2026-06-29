@@ -105,3 +105,116 @@ QPushButton:pressed {
     font-size:12px;
     font-weight:600;
 }
+
+#loginPage {
+    background: #FFFFFF;
+}
+
+#loginFormPanel {
+    background: #FFFFFF;
+    border: none;
+}
+
+#loginHeroPanel {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:1,
+        stop:0 #EAF4FF,
+        stop:0.45 #7CB8FF,
+        stop:1 #147BFF
+    );
+    border: none;
+}
+
+#loginTitle {
+    color: #0B2F66;
+    font-size: 38px;
+    font-weight: 1000;
+}
+
+#loginSubtitle {
+    color: #0B2F66;
+    font-size: 17px;
+    font-weight: 900;
+}
+
+#loginDescription {
+    color: #6B7A90;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+#loginInput {
+    background: #FFFFFF;
+    border: 1px solid #DFE7F3;
+    border-radius: 14px;
+    color: #172033;
+    min-height: 44px;
+    padding: 10px 14px;
+}
+
+#loginInput:focus {
+    border: 1px solid #147BFF;
+}
+
+#loginPrimaryButton {
+    background: #147BFF;
+    border: none;
+    border-radius: 14px;
+    color: #FFFFFF;
+    font-weight: 900;
+    min-height: 48px;
+}
+
+#loginPrimaryButton:hover {
+    background: #0E6CE0;
+}
+
+#loginPrimaryButton:pressed {
+    background: #0757B8;
+}
+
+#loginSecondaryButton {
+    background: #FFFFFF;
+    border: 1px solid #147BFF;
+    border-radius: 14px;
+    color: #147BFF;
+    font-weight: 900;
+    min-height: 48px;
+}
+
+#loginSecondaryButton:hover {
+    background: #EAF4FF;
+}
+
+#loginFooter {
+    color: #6B7A90;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+#loginHeroTitle {
+    color: #FFFFFF;
+    font-size: 42px;
+    font-weight: 1000;
+}
+
+#loginHeroSubtitle {
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 16px;
+    font-weight: 800;
+}
+
+#loginHeroIcon {
+    color: #FFFFFF;
+    font-size: 52px;
+    min-width: 72px;
+    min-height: 72px;
+    qproperty-alignment: AlignCenter;
+}
+
+#loginHeroTagline {
+    color: #FFFFFF;
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1.5;
+}
