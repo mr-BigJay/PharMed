@@ -72,7 +72,7 @@ class LoginWindow(QWidget):
         layout.addWidget(register_btn)
         layout.addStretch()
         footer = QLabel(
-            "طراحی و توسعه\nصادق جعفری با همکاری علیرضا محمدرضایی"
+            "طراحی و توسعه توسط صادق جعفری با همکاری علیرضا محمدرضایی"
         )
         footer.setAlignment(
             Qt.AlignCenter
